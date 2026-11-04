@@ -4,12 +4,11 @@
 
 ## Equipo
 
-**Nombre del equipo:** `[POR DEFINIR]`
-
 | Integrante | Matrícula | Rol |
 |---|---|---|
-| Diego Baudel López Ramírez | 230300758 | `[rol]` |
-| `[Nombre]` | `[matrícula]` | `[rol]` |
+| Gabriela Carolyn Montiel Uicab | 230300807 | Lider |
+| Sofía Regina Herrera Uc | 230300937 | ' ' |
+| Diego Baudel López Ramírez | 230300758 | ' ' |
 
 **Profesora:** Mtra. Jessica Carmin Mendiola Fuentes
 
