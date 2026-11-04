@@ -7,8 +7,8 @@
 | Integrante | Matrícula | Rol |
 |---|---|---|
 | Gabriela Carolyn Montiel Uicab | 230300807 | Lider |
-| Sofía Regina Herrera Uc | 230300937 | ' ' |
-| Diego Baudel López Ramírez | 230300758 | ' ' |
+| Sofía Regina Herrera Uc | 230300937 |  |
+| Diego Baudel López Ramírez | 230300758 |  |
 
 **Profesora:** Mtra. Jessica Carmin Mendiola Fuentes
 
