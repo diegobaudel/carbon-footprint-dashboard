@@ -54,6 +54,47 @@ Desarrollo incremental por fases, guiado por **CRISP-DM** y con seguimiento de t
 | Fase 3: Desarrollo | Construcción de KPIs y gráficas en React |
 | Fase 4: Evaluación y despliegue | Validación con los objetivos, publicación en Vercel |
 
+## Forma de trabajo
+
+> Si usas un agente de IA (Claude, Codex, Cursor…), sus instrucciones están en [`AGENTS.md`](AGENTS.md).
+
+### Equipo y ramas
+| Persona | Rol | Rama |
+|---|---|---|
+| Gabriela Carolyn Montiel Uicab | Líder, aprueba los PR a `main` | `develop/gabriela` |
+| Sofía Regina Herrera Uc | Integrante | `develop/sofia` |
+| Diego Baudel López Ramírez | Integrante | `develop/bauky` |
+
+- Cada quien trabaja en su `develop/<nombre>`, creada desde `main`.
+- Lo de otra persona no se toca sin avisarle.
+
+### Flujo
+```
+main ──► develop/<nombre> ──PR──► main
+              ▲
+              └── git merge main  (seguido, para no llegar con conflictos)
+```
+1. Crear tu rama una vez: `git checkout main && git pull && git checkout -b develop/<nombre> && git push -u origin develop/<nombre>`
+2. Trabajar y subir a tu rama.
+3. Antes del PR: `git merge main` en tu rama y resolver conflictos ahí.
+4. Abrir PR a `main`. Gabriela lo revisa y lo mergea.
+
+### Reglas de git
+- `main` siempre debe correr. Solo entra por PR.
+- Nada de force push, rebase, amend ni squash sobre commits ya subidos.
+- Commits en español, en presente, diciendo qué cambia. Ej.: "Agrega el KPI de CO₂ per cápita con sparkline 2010–2023".
+- Sin coautoría de IA en los commits.
+- Si un archivo aparece con todas sus líneas cambiadas, es fin de línea (CRLF/LF): no lo subas así.
+
+### Datos
+- `data/raw/` no se edita: es el CSV de OWID tal cual.
+- Todo cambio a los datos pasa por `scripts/`.
+- No se inventan datos. Si falta un valor, se queda nulo y se documenta.
+
+### Checklist
+**Antes de empezar:** `git pull` y `git merge main` en tu rama.
+**Antes del PR:** `npm run build` y `npm run lint` sin errores · coincide con el wireframe y la paleta de la Fase 2 · `docs/` al día.
+
 ## Datos
 
 **Fuente:** [Our World in Data, CO₂ and Greenhouse Gas Emissions](https://github.com/owid/co2-data)
