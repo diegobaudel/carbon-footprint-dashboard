@@ -6,7 +6,7 @@ Instrucciones para cualquier agente de IA (Claude, Codex, Cursor, Copilot, etc.)
 
 Dashboard "Huella de carbono: ¿quién contamina más?". Proyecto 2 de Visualización de Datos (Universidad del Caribe). Analiza emisiones de CO₂, PIB y población por país de 2010 a 2023 con datos de Our World in Data.
 
-- Stack: React + Vite, Recharts, react-simple-maps, d3-scale. Limpieza de datos en Python + pandas.
+- Stack: React + Vite + **TypeScript**, Recharts, react-simple-maps, d3-scale. Limpieza de datos en Python + pandas. Los datos se cargan con `fetch` desde `public/data/*.json` (no hay base de datos).
 - Fase vigente: **Fase 3, implementación en React**. Hay que pasar el wireframe de la Fase 2 a código sin cambiar las decisiones de diseño.
 
 ## Antes de hacer cualquier cosa
