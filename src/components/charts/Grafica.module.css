@@ -1,0 +1,54 @@
+/* Contenedor que ocupa el resto de la tarjeta, para que Recharts pueda medirse */
+.grafica {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+/* Switch de dos opciones (Total / Per cápita) */
+.switch {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+}
+
+.opcion {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-texto-sec);
+  font-size: var(--texto-nota);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.activa {
+  background: var(--color-tarjeta);
+  color: var(--color-marino);
+  font-weight: 600;
+  box-shadow: var(--sombra);
+}
+
+.nota {
+  margin-top: 6px;
+  font-size: var(--texto-nota);
+  color: var(--color-texto-sec);
+}
+
+/* Tooltip propio, igual al del mapa */
+.tooltip {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-marino);
+  color: #fff;
+  font-size: var(--texto-nota);
+  line-height: 1.5;
+  box-shadow: var(--sombra);
+}
+
+.tooltip strong {
+  font-size: var(--texto-sec);
+}

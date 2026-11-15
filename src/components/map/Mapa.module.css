@@ -1,0 +1,82 @@
+.contenedor {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pais {
+  outline: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.pais:hover {
+  opacity: 0.8;
+}
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(12px, -110%);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-marino);
+  color: #fff;
+  font-size: var(--texto-nota);
+  line-height: 1.5;
+  white-space: nowrap;
+  box-shadow: var(--sombra);
+}
+
+.tooltip strong {
+  font-size: var(--texto-sec);
+}
+
+.leyenda {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  font-size: var(--texto-nota);
+  color: var(--color-texto-sec);
+}
+
+.rangos {
+  display: flex;
+}
+
+.rango {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 64px;
+}
+
+.muestra {
+  height: 10px;
+}
+
+.rango:first-child .muestra {
+  border-radius: 3px 0 0 3px;
+}
+
+.rango:last-child .muestra {
+  border-radius: 0 3px 3px 0;
+}
+
+.sinDato {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sinDato .muestra {
+  width: 14px;
+  border-radius: 3px;
+}

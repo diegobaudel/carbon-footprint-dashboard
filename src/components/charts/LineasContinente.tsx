@@ -1,0 +1,137 @@
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  useXAxisScale,
+  useYAxisScale,
+} from 'recharts'
+import { useFiltros } from '../../context/filtros.ts'
+import { colores, tonosSeries } from '../../styles/palette.ts'
+import { CONTINENTES, type RegistroAgregado } from '../../types.ts'
+import { numero } from '../../utils/formato.ts'
+import { Tarjeta } from '../layout/Tarjeta.tsx'
+import { estiloTooltip, lineaEje, ticks } from './ejes.ts'
+import estilos from './Grafica.module.css'
+
+/** Trazos para distinguir las líneas sin depender solo del color (accesibilidad). */
+const TRAZOS = ['', '6 4', '2 3', '', '6 4', '2 3']
+
+/** Separación mínima entre etiquetas finales, en px. */
+const SEPARACION = 13
+
+interface Etiqueta {
+  nombre: string
+  valor: number
+  color: string
+  atenuada: boolean
+}
+
+/**
+ * Etiquetas directas al final de cada línea. Se calculan juntas para separarlas
+ * cuando dos continentes terminan muy cerca (África, Sudamérica y Oceanía).
+ */
+function EtiquetasFinales({ anio, etiquetas }: { anio: number; etiquetas: Etiqueta[] }) {
+  const escalaX = useXAxisScale()
+  const escalaY = useYAxisScale()
+  if (!escalaX || !escalaY) return null
+
+  const x = Number(escalaX(anio)) + 6
+  const posiciones = etiquetas
+    .map((e) => ({ ...e, y: Number(escalaY(e.valor)) }))
+    .sort((a, b) => b.y - a.y) // de abajo hacia arriba
+  for (let i = 1; i < posiciones.length; i++) {
+    posiciones[i].y = Math.min(posiciones[i].y, posiciones[i - 1].y - SEPARACION)
+  }
+
+  return (
+    <g>
+      {posiciones.map((e) => (
+        <text key={e.nombre} x={x} y={e.y} dy={4} fontSize={11} fill={e.color} opacity={e.atenuada ? 0.35 : 1}>
+          {e.nombre}
+        </text>
+      ))}
+    </g>
+  )
+}
+
+/**
+ * Emisiones totales por continente, 2010–2023. Línea: tendencia en el tiempo.
+ * La línea vertical en 2015 marca el Acuerdo de París.
+ */
+export function LineasContinente({
+  agregados,
+  className,
+}: {
+  agregados: RegistroAgregado[]
+  className?: string
+}) {
+  const { continente } = useFiltros()
+
+  // De filas (continente, año) a una fila por año con una columna por continente
+  const porAnio = new Map<number, Record<string, number>>()
+  for (const a of agregados) {
+    if (!(CONTINENTES as readonly string[]).includes(a.nombre) || a.co2 == null) continue
+    const fila = porAnio.get(a.anio) ?? { anio: a.anio }
+    fila[a.nombre] = a.co2
+    porAnio.set(a.anio, fila)
+  }
+  const datos = [...porAnio.values()].sort((a, b) => a.anio - b.anio)
+  const final = datos[datos.length - 1]
+  const etiquetas: Etiqueta[] = final
+    ? CONTINENTES.filter((c) => final[c] != null).map((c) => ({
+        nombre: c,
+        valor: final[c],
+        color: tonosSeries[CONTINENTES.indexOf(c)],
+        atenuada: continente !== 'Todos' && continente !== c,
+      }))
+    : []
+
+  return (
+    <Tarjeta titulo="Emisiones por continente, 2010–2023" subtitulo="Mt CO₂" className={className}>
+      <div className={estilos.grafica}>
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={datos} margin={{ top: 16, right: 92, bottom: 0, left: 0 }}>
+            <CartesianGrid vertical={false} stroke={colores.borde} />
+            <XAxis dataKey="anio" tick={ticks} axisLine={lineaEje} tickLine={false} />
+            <YAxis
+              tick={ticks}
+              axisLine={false}
+              tickLine={false}
+              width={52}
+              tickFormatter={(v) => numero(Number(v), 0)}
+            />
+            <Tooltip formatter={(v) => `${numero(Number(v), 0)} Mt`} contentStyle={estiloTooltip} />
+            <ReferenceLine
+              x={2015}
+              stroke={colores.textoSec}
+              strokeDasharray="4 4"
+              label={{ value: 'Acuerdo de París', position: 'top', fontSize: 11, fill: colores.textoSec }}
+            />
+            {CONTINENTES.map((c, i) => {
+              const atenuada = continente !== 'Todos' && continente !== c
+              return (
+                <Line
+                  key={c}
+                  dataKey={c}
+                  type="monotone"
+                  stroke={tonosSeries[i]}
+                  strokeWidth={continente === c ? 3 : 2}
+                  strokeDasharray={TRAZOS[i]}
+                  strokeOpacity={atenuada ? 0.25 : 1}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              )
+            })}
+            {final && <EtiquetasFinales anio={final.anio} etiquetas={etiquetas} />}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </Tarjeta>
+  )
+}

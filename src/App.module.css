@@ -1,0 +1,63 @@
+/*
+ * Cuadrícula del wireframe (Fase 2): frame de 1440 px, 12 columnas,
+ * márgenes laterales de 32 px y gutter de 24 px.
+ */
+.frame {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+/* Etiqueta sobre el encabezado (como "FRAME 01" en el wireframe) */
+.etiqueta {
+  padding: 20px var(--margen) 10px;
+  font-size: var(--texto-sec);
+  font-weight: 600;
+  color: var(--color-marino);
+}
+
+.etiquetaProyecto {
+  margin-right: 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--color-emision);
+}
+
+/* Fila 0 · encabezado: barra de lado a lado, fuera de la cuadrícula */
+
+.dashboard {
+  padding: var(--gutter) var(--margen) var(--margen);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: 200px 380px 300px 240px;
+  gap: var(--gutter);
+}
+
+/* Fila 1 · KPIs: principal en 4 columnas, los 3 secundarios en las 8 restantes */
+.kpiPrincipal { grid-column: span 4; }
+.kpisSecundarios {
+  grid-column: span 8;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--gutter);
+}
+
+/* Fila 2 · mapa (8) + ranking (4) */
+.mapa { grid-column: span 8; }
+.ranking { grid-column: span 4; }
+
+/* Fila 3 · líneas (6) + dispersión (6) */
+.lineas { grid-column: span 6; }
+.dispersion { grid-column: span 6; }
+
+/* Fila 4 · fuentes (8) + notas (4) */
+.fuentes { grid-column: span 8; }
+.notas { grid-column: span 4; }
+
+.estado {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--margen);
+  color: var(--color-texto-sec);
+}

@@ -1,0 +1,188 @@
+/* KPI principal: la tarjeta más destacada (nivel 1) */
+.principal {
+  border-left: 6px solid var(--color-emision);
+}
+
+.etiqueta {
+  font-size: var(--texto-sec);
+  color: var(--color-texto-sec);
+}
+
+.valorPrincipal {
+  margin-top: 4px;
+  font-size: var(--texto-kpi-principal);
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-marino);
+}
+
+.valor {
+  font-size: var(--texto-kpi);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--color-marino);
+  white-space: nowrap;
+}
+
+.unidad {
+  margin-left: 6px;
+  font-size: var(--texto-tarjeta);
+  font-weight: 500;
+  color: var(--color-texto-sec);
+}
+
+.mejora {
+  color: var(--color-mejora);
+  font-weight: 600;
+}
+
+.nota {
+  margin-top: auto;
+  font-size: var(--texto-nota);
+  color: var(--color-texto-sec);
+}
+
+.par {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* KPI principal: etiqueta en dos líneas, número grande y unidad pegada a su base */
+.etiquetaFuerte {
+  font-size: var(--texto-sec);
+  font-weight: 600;
+  color: var(--color-marino);
+}
+
+.etiquetaSec {
+  font-size: var(--texto-nota);
+  color: var(--color-texto-sec);
+}
+
+.filaValor {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.unidadFuerte {
+  font-size: var(--texto-tarjeta);
+  font-weight: 600;
+  color: var(--color-marino);
+}
+
+.delta {
+  margin-top: 4px;
+  font-size: var(--texto-sec);
+  color: var(--color-texto-sec);
+}
+
+.sparkline {
+  flex: 1;
+  min-height: 40px;
+  margin-top: 4px;
+}
+
+/* Variación %: dos columnas y nota separada por una línea */
+.parGrande {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 12px;
+}
+
+.parGrande > div + div {
+  padding-left: 16px;
+  border-left: 1px solid var(--color-borde);
+}
+
+.notaLinea {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-borde);
+  font-size: var(--texto-nota);
+  color: var(--color-texto-sec);
+}
+
+.aumento {
+  color: var(--color-emision);
+  font-weight: 600;
+}
+
+.nombrePais {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--color-marino);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Top 5 emisores */
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 18px 104px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--texto-nota);
+}
+
+.posicion {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--escala-1);
+  color: var(--escala-4);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.nombreFila {
+  color: var(--color-texto-sec);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pista {
+  height: 6px;
+  border-radius: 4px;
+  background: var(--color-borde);
+  overflow: hidden;
+}
+
+.relleno {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--color-emision);
+}
+
+.cifra {
+  font-weight: 600;
+  color: var(--color-marino);
+  font-variant-numeric: tabular-nums;
+}
+
+.seleccionado .nombreFila {
+  color: var(--color-marino);
+  font-weight: 600;
+}
+
+.seleccionado .relleno {
+  background: var(--escala-5);
+}
