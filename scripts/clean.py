@@ -12,6 +12,7 @@ Salida:
   public/data/agregados.json
 
 Uso (desde la raiz del repo):
+  pip install pandas pycountry
   python scripts/clean.py
 """
 from pathlib import Path
@@ -19,6 +20,7 @@ import json
 import sys
 
 import pandas as pd
+import pycountry
 
 RAIZ = Path(__file__).resolve().parent.parent
 RAW = RAIZ / "data" / "raw"
@@ -97,7 +99,14 @@ def main() -> None:
     fuera = set(sin_pib[sin_pib > MAX_ANIOS_SIN_PIB].index)
     paises["en_dispersion"] = ~paises["iso"].isin(fuera)
 
-    # 6. Continente
+    # 6. Codigo ISO alfa-2 para que React traduzca el nombre al espanol (Intl.DisplayNames)
+    def a_iso2(iso3: str):
+        pais = pycountry.countries.get(alpha_3=iso3)
+        return pais.alpha_2 if pais else None
+
+    paises["iso2"] = paises["iso"].map(a_iso2)
+
+    # 7. Continente
     cont = cargar_continentes()
     paises = paises.merge(cont, on="iso", how="left")
     paises["continente"] = paises["continente_en"].map(CONTINENTES_ES)
@@ -110,7 +119,7 @@ def main() -> None:
     agregados = agregados[["pais", "nombre", "anio", "poblacion", "co2", "co2_pc",
                            "carbon", "petroleo", "gas", "cemento", "flaring"]]
 
-    orden = ["iso", "pais", "continente", "anio", "poblacion", "pib", "pib_pc",
+    orden = ["iso", "iso2", "pais", "continente", "anio", "poblacion", "pib", "pib_pc",
              "co2", "co2_pc", "carbon", "petroleo", "gas", "cemento", "flaring", "en_dispersion"]
     paises = paises[orden].sort_values(["iso", "anio"])
     agregados = agregados.sort_values(["pais", "anio"])

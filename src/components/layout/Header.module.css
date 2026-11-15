@@ -1,0 +1,87 @@
+/* Barra de encabezado azul marino, de lado a lado del frame (fila 0, 72 px) */
+.header {
+  min-height: 72px;
+  padding: 14px var(--margen);
+  background: var(--color-marino);
+  color: var(--color-tarjeta);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--gutter);
+}
+
+.titulo {
+  font-size: var(--texto-titulo);
+  font-weight: 700;
+  color: var(--color-tarjeta);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+
+.subtitulo {
+  margin-top: 4px;
+  font-size: var(--texto-sec);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.filtros {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Deslizador de año: "Año" a la izquierda, valor a la derecha, 2010 / 2023 abajo */
+.filtroAnio {
+  width: 190px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  row-gap: 2px;
+  font-size: var(--texto-nota);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.filtroAnio strong {
+  color: var(--color-tarjeta);
+  font-size: var(--texto-sec);
+  font-weight: 700;
+}
+
+.deslizador {
+  grid-column: 1 / -1;
+  width: 100%;
+  margin: 0;
+  accent-color: var(--color-emision);
+  cursor: pointer;
+}
+
+.extremos {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.filtro {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--texto-nota);
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.select {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-tarjeta);
+  cursor: pointer;
+  min-width: 140px;
+  max-width: 180px;
+}
+
+.select option {
+  color: var(--color-marino);
+}

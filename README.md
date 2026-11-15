@@ -170,8 +170,9 @@ npm run dev          # http://localhost:5173
 Regenerar los datos (solo si cambia el CSV o la limpieza):
 
 ```bash
-pip install pandas
+pip install pandas pycountry
 python scripts/clean.py
+python scripts/preparar_mapa.py   # mapa: data/raw/world-atlas-countries-110m.json → public/data/mundo-110m.json
 ```
 
 Validar antes de un PR:

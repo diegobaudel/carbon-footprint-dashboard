@@ -1,0 +1,26 @@
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--color-texto-sec);
+  font-size: var(--texto-sec);
+}
+
+.lista li {
+  position: relative;
+  padding-left: 16px;
+}
+
+.lista li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-emision);
+}
