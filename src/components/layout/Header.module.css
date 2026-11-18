@@ -1,3 +1,10 @@
+/* Encabezado + indicador de filtros: se quedan fijos arriba al hacer scroll */
+.fijo {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
 /* Barra de encabezado azul marino, de lado a lado del frame (fila 0, 72 px) */
 .header {
   min-height: 72px;
@@ -30,20 +37,53 @@
   gap: 20px;
 }
 
-/* Deslizador de año: "Año" a la izquierda, valor a la derecha, 2010 / 2023 abajo */
+/* Año: "Año" a la izquierda, ‹ valor › a la derecha, deslizador y 2010 / 2023 abajo */
 .filtroAnio {
-  width: 190px;
+  width: 200px;
   display: grid;
   grid-template-columns: 1fr auto;
+  align-items: center;
   row-gap: 2px;
   font-size: var(--texto-nota);
   color: rgba(255, 255, 255, 0.75);
 }
 
-.filtroAnio strong {
+.controlAnio {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.controlAnio strong {
+  min-width: 34px;
+  text-align: center;
   color: var(--color-texto-invertido);
   font-size: var(--texto-sec);
   font-weight: 700;
+}
+
+.pasoAnio {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-texto-invertido);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pasoAnio:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.pasoAnio:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .deslizador {
@@ -87,22 +127,55 @@
   color: var(--color-texto);
 }
 
-.botonLimpiar {
-  background-color: var(--color-control);
-  border: 1px solid var(--color-control-borde);
-  color: var(--color-texto);
-  padding: 0.4rem 0.7rem;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* Franja de filtros activos, debajo del encabezado */
+.indicador {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px var(--margen);
+  background: var(--color-fondo);
+  border-bottom: 1px solid var(--color-borde);
+  font-size: var(--texto-nota);
+  color: var(--color-texto-sec);
+}
+
+.chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  align-self: flex-end;
-  height: fit-content;
-  margin-bottom: 0.15rem;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  font-weight: 500;
+}
+
+.chip button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-texto-sec);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.chip button:hover {
+  color: var(--color-emision);
+}
+
+.botonLimpiar {
+  margin-left: auto;
+  padding: 4px 10px;
+  border: 1px solid var(--color-control-borde);
+  border-radius: 6px;
+  background-color: var(--color-control);
+  color: var(--color-texto);
+  font-size: var(--texto-nota);
+  font-weight: 500;
+  cursor: pointer;
 }
 
 .botonLimpiar:hover {

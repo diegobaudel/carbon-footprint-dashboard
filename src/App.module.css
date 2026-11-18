@@ -51,8 +51,8 @@
 .lineas { grid-column: span 6; }
 .dispersion { grid-column: span 6; }
 
-/* Fila 4 · fuentes (8) + notas (4) */
-.fuentes { grid-column: span 8; }
+/* Fila 4 · fuentes a lo ancho (las notas se movieron al modal de Metodología) */
+.fuentes { grid-column: 1 / -1; }
 .notas { grid-column: span 4; }
 
 .estado {

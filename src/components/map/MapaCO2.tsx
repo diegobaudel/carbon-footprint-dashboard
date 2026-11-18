@@ -1,5 +1,5 @@
 import { useMemo, useState, type MouseEvent } from 'react'
-import { ComposableMap, Geographies, Geography } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, Sphere } from 'react-simple-maps'
 import { scaleThreshold } from 'd3-scale'
 import { useFiltros } from '../../context/filtros.ts'
 import { colores, cortesMapa, escalaMapa } from '../../styles/palette.ts'
@@ -71,6 +71,7 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
           height={360}
           className={estilos.svg}
         >
+          <Sphere id="oceano" fill={colores.oceano} stroke="none" />
           <Geographies geography={URL_MAPA}>
             {({ geographies }) =>
               geographies.map((geo) => {
@@ -87,9 +88,9 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
                     className={estilos.pais}
                     fill={valor != null ? escala(valor) : colores.sinDato}
                     fillOpacity={fuera ? 0.2 : 1}
-                    // El borde entre países toma el color de la tarjeta: sin líneas blancas en oscuro
-                    stroke={elegido ? colores.texto : colores.tarjeta}
-                    strokeWidth={elegido ? 2 : 0.4}
+                    // Blanco en claro; gris azulado en oscuro para que se vea la silueta
+                    stroke={elegido ? colores.texto : colores.contorno}
+                    strokeWidth={elegido ? 2 : 0.5}
                     onClick={() => alClic(iso)}
                     onMouseMove={(e) => alMover(e, iso, nombre)}
                   />

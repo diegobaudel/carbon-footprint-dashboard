@@ -82,6 +82,8 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
                 name={f.nombre}
                 stackId="fuentes"
                 fill={coloresFuente[f.clave]}
+                stroke={colores.contorno}
+                strokeWidth={0.5}
                 barSize={16}
                 isAnimationActive={false}
               />

@@ -16,6 +16,8 @@
   --color-control: #f1f5f9;       /* botones secundarios */
   --color-control-hover: #e2e8f0;
   --color-control-borde: #cbd5e1;
+  --color-contorno: #ffffff;      /* bordes entre países y segmentos de barras */
+  --color-mapa-oceano: transparent;
 
   /* Significado */
   --color-emision: #c65d21;       /* emisiones: acento principal */
@@ -72,10 +74,12 @@
   --color-encabezado: #101a2e;
   --color-destacado: #f2b880;
   --color-mejora: #14b8a6;
-  --color-sin-dato: #3b475e;
+  --color-sin-dato: #4b5870;
   --color-control: #1e293b;
   --color-control-hover: #2a3650;
   --color-control-borde: #334155;
+  --color-contorno: #5b6b8a;      /* silueta de países y barras sobre fondo oscuro */
+  --color-mapa-oceano: #1d2a42;   /* océano más claro que la tarjeta: los cafés no se pierden */
 
   --serie-1: #f9e0c7;
   --serie-2: #f2b880;

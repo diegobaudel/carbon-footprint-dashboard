@@ -12,6 +12,8 @@ export const colores = {
   destacado: 'var(--color-destacado)',
   mejora: 'var(--color-mejora)',
   sinDato: 'var(--color-sin-dato)',
+  contorno: 'var(--color-contorno)',
+  oceano: 'var(--color-mapa-oceano)',
   // Datos: iguales en los dos modos
   emision: '#C65D21',
 } as const
