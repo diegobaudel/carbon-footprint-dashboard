@@ -3,14 +3,17 @@
  * como texto (Recharts, react-simple-maps). Si cambia un color, cambia en los dos.
  */
 export const colores = {
-  marino: '#1B2A4A',
-  fondo: '#F7F7F5',
-  tarjeta: '#FFFFFF',
-  textoSec: '#6B7280',
-  borde: '#E5E7EB',
+  // Estructura: apuntan a las variables CSS para que cambien con el modo oscuro
+  texto: 'var(--color-texto)',
+  textoSec: 'var(--color-texto-sec)',
+  borde: 'var(--color-borde)',
+  fondo: 'var(--color-fondo)',
+  tarjeta: 'var(--color-tarjeta)',
+  destacado: 'var(--color-destacado)',
+  mejora: 'var(--color-mejora)',
+  sinDato: 'var(--color-sin-dato)',
+  // Datos: iguales en los dos modos
   emision: '#C65D21',
-  mejora: '#0F766E',
-  sinDato: '#D1D5DB',
 } as const
 
 /** Escala del mapa, de menos a más CO₂ per cápita. */
@@ -24,7 +27,14 @@ export const cortesMapa = [1, 3, 6, 10] as const
  * para una línea sobre blanco, así que se usa el azul marino de la paleta en su lugar;
  * además cada línea cambia de trazo (sólida, punteada, discontinua).
  */
-export const tonosSeries = ['#4A2C1A', '#8B4513', '#C65D21', '#F2B880', '#1B2A4A', '#6B7280'] as const
+export const tonosSeries = [
+  'var(--serie-1)',
+  'var(--serie-2)',
+  'var(--serie-3)',
+  'var(--serie-4)',
+  'var(--serie-5)',
+  'var(--serie-6)',
+] as const
 
 /** Colores de las barras apiladas por fuente: escala naranja-café + gris. */
 export const coloresFuente = {

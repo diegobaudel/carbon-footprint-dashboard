@@ -24,8 +24,8 @@ interface Hover {
 }
 
 /**
-- Mapa coroplético de CO₂ per cápita del año filtrado. Mapa: distribución geográfica.
-- Clic en un país para filtrar (otro clic lo quita).
+ * Mapa coroplético de CO₂ per cápita del año filtrado. Mapa: distribución geográfica.
+ * Clic en un país para filtrarlo (otro clic lo quita).
  */
 export function MapaCO2({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais, setContinente, setPais } = useFiltros()
@@ -87,13 +87,9 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
                     className={estilos.pais}
                     fill={valor != null ? escala(valor) : colores.sinDato}
                     fillOpacity={fuera ? 0.2 : 1}
-                    stroke={elegido ? '#2563eb' : '#ffffff'}
+                    // El borde entre países toma el color de la tarjeta: sin líneas blancas en oscuro
+                    stroke={elegido ? colores.texto : colores.tarjeta}
                     strokeWidth={elegido ? 2 : 0.4}
-                    style={{
-                      default: { outline: 'none' },
-                      hover: { fill: '#f97316', outline: 'none', cursor: 'pointer' },
-                      pressed: { outline: 'none' },
-                    }}
                     onClick={() => alClic(iso)}
                     onMouseMove={(e) => alMover(e, iso, nombre)}
                   />
@@ -131,4 +127,4 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
       </div>
     </Tarjeta>
   )
-}
+}

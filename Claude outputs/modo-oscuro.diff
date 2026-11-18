@@ -1,0 +1,798 @@
+diff --git a/src/App.module.css b/src/App.module.css
+index 1146745..100ff94 100644
+--- a/src/App.module.css
++++ b/src/App.module.css
+@@ -12,7 +12,7 @@
+   padding: 20px var(--margen) 10px;
+   font-size: var(--texto-sec);
+   font-weight: 600;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+ }
+ 
+ .etiquetaProyecto {
+@@ -62,30 +62,7 @@
+   color: var(--color-texto-sec);
+ }
+ 
+-
+-/* Asegurar que la clase dark aplique colores a todo el contenedor y sus hijos */
+-.frame.dark {
+-  background-color: #0b0f19 !important;
+-  color: #f8fafc !important;
+-}
+-
+-/* Fondo oscuro para las tarjetas de KPIs y gráficos cuando el modo oscuro está activo */
+-.dark :global(.card),
+-.dark div[class*="kpi"],
+-.dark div[class*="tarjeta"],
+-.dark section,
+-.dark aside {
+-  background-color: #1e293b !important;
+-  color: #f8fafc !important;
+-  border-color: #334155 !important;
+-}
+-
+-/* Ajuste de textos principales y secundarios en modo oscuro */
+-.dark h1, .dark h2, .dark h3, .dark h4, .dark p, .dark span {
+-  color: #f8fafc !important;
+-}
+-
+-/* Estilos de los botones del header superior */
++/* Barra superior: etiqueta del proyecto y botones globales */
+ .barraSuperiorGlobal {
+   display: flex;
+   justify-content: space-between;
+@@ -100,9 +77,11 @@
+   gap: 0.5rem;
+ }
+ 
+-.botonTema, .botonInfo {
+-  background-color: #f1f5f9;
+-  border: 1px solid #cbd5e1;
++.botonTema,
++.botonInfo {
++  background-color: var(--color-control);
++  border: 1px solid var(--color-control-borde);
++  color: var(--color-texto);
+   padding: 0.35rem 0.75rem;
+   border-radius: 6px;
+   cursor: pointer;
+@@ -111,27 +90,15 @@
+   transition: background 0.2s;
+ }
+ 
+-.dark .botonTema, .dark .botonInfo {
+-  background-color: #334155;
+-  color: #f8fafc;
+-  border-color: #475569;
+-}
+-
+-.botonTema:hover, .botonInfo:hover {
+-  background-color: #e2e8f0;
+-}
+-
+-.dark .botonTema:hover, .dark .botonInfo:hover {
+-  background-color: #475569;
++.botonTema:hover,
++.botonInfo:hover {
++  background-color: var(--color-control-hover);
+ }
+ 
+-/* Modal Flotante de Metodología */
++/* Modal flotante de Metodología */
+ .modalOverlay {
+   position: fixed;
+-  top: 0;
+-  left: 0;
+-  width: 100vw;
+-  height: 100vh;
++  inset: 0;
+   background-color: rgba(0, 0, 0, 0.7);
+   display: flex;
+   justify-content: center;
+@@ -140,18 +107,14 @@
+ }
+ 
+ .modalContenido {
+-  background: white;
++  background: var(--color-tarjeta);
++  color: var(--color-texto);
+   padding: 2rem;
+   border-radius: 12px;
+   max-width: 600px;
+   width: 90%;
+   position: relative;
+-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+-}
+-
+-.dark .modalContenido {
+-  background: #1e293b;
+-  color: #f8fafc;
++  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+ }
+ 
+ .cerrarModal {
+@@ -163,125 +126,4 @@
+   font-size: 1.2rem;
+   cursor: pointer;
+   color: inherit;
+-}/* Asegurar que la clase dark aplique colores a todo el contenedor y sus hijos */
+-.frame.dark {
+-  background-color: #0b0f19 !important;
+-  color: #f8fafc !important;
+-}
+-
+-/* Fondo oscuro para las tarjetas de KPIs y gráficos cuando el modo oscuro está activo */
+-.dark :global(.card),
+-.dark div[class*="kpi"],
+-.dark div[class*="tarjeta"],
+-.dark section,
+-.dark aside {
+-  background-color: #1e293b !important;
+-  color: #f8fafc !important;
+-  border-color: #334155 !important;
+-}
+-
+-/* Ajuste de textos principales y secundarios en modo oscuro */
+-.dark h1, .dark h2, .dark h3, .dark h4, .dark p, .dark span {
+-  color: #f8fafc !important;
+-}
+-
+-/* Estilos de los botones del header superior */
+-.barraSuperiorGlobal {
+-  display: flex;
+-  justify-content: space-between;
+-  align-items: center;
+-  flex-wrap: wrap;
+-  gap: 1rem;
+-  margin-bottom: 0.5rem;
+-}
+-
+-.controlesGlobales {
+-  display: flex;
+-  gap: 0.5rem;
+-}
+-
+-.botonTema, .botonInfo {
+-  background-color: #f1f5f9;
+-  border: 1px solid #cbd5e1;
+-  padding: 0.35rem 0.75rem;
+-  border-radius: 6px;
+-  cursor: pointer;
+-  font-size: 0.85rem;
+-  font-weight: 500;
+-  transition: background 0.2s;
+ }
+-
+-.dark .botonTema, .dark .botonInfo {
+-  background-color: #334155;
+-  color: #f8fafc;
+-  border-color: #475569;
+-}
+-
+-.botonTema:hover, .botonInfo:hover {
+-  background-color: #e2e8f0;
+-}
+-
+-.dark .botonTema:hover, .dark .botonInfo:hover {
+-  background-color: #475569;
+-}
+-
+-/* Modal Flotante de Metodología */
+-.modalOverlay {
+-  position: fixed;
+-  top: 0;
+-  left: 0;
+-  width: 100vw;
+-  height: 100vh;
+-  background-color: rgba(0, 0, 0, 0.7);
+-  display: flex;
+-  justify-content: center;
+-  align-items: center;
+-  z-index: 1000;
+-}
+-
+-.modalContenido {
+-  background: white;
+-  padding: 2rem;
+-  border-radius: 12px;
+-  max-width: 600px;
+-  width: 90%;
+-  position: relative;
+-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+-}
+-
+-.dark .modalContenido {
+-  background: #1e293b;
+-  color: #f8fafc;
+-}
+-
+-.cerrarModal {
+-  position: absolute;
+-  top: 1rem;
+-  right: 1rem;
+-  background: transparent;
+-  border: none;
+-  font-size: 1.2rem;
+-  cursor: pointer;
+-  color: inherit;
+-}
+-
+-/* Estilo general para los tooltips flotantes */
+-.tooltip, div[class*="tooltip"] {
+-  background-color: #ffffff;
+-  color: #0f172a;
+-  border: 1px solid #cbd5e1;
+-  padding: 0.5rem 0.75rem;
+-  border-radius: 6px;
+-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+-  font-size: 0.8rem;
+-  z-index: 100;
+-}
+-
+-/* Adaptación del tooltip cuando el modo oscuro está activo (.dark) */
+-.dark .tooltip, 
+-.dark div[class*="tooltip"],
+-.dark [class*="tooltipAyuda"] {
+-  background-color: #1e293b !important;
+-  color: #f8fafc !important;
+-  border-color: #475569 !important;
+-}
+\ No newline at end of file
+diff --git a/src/App.tsx b/src/App.tsx
+index 0559552..0005334 100644
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -1,4 +1,4 @@
+-import { useState } from 'react'
++import { useEffect, useState } from 'react'
+ import { useDatos } from './hooks/useDatos.ts'
+ import { useAlcance } from './hooks/useAlcance.ts'
+ import { Header } from './components/layout/Header.tsx'
+@@ -18,8 +18,12 @@ export default function App() {
+   const { paises, agregados, cargando, error } = useDatos()
+   const alcance = useAlcance(paises, agregados)
+ 
+-  // Estado para el Modo Oscuro / Claro
+-  const [isDarkMode, setIsDarkMode] = useState(false)
++  // Modo oscuro: se marca en <html data-tema="oscuro"> para que las variables de
++  // palette.css cambien en toda la pantalla, no solo dentro del frame de 1440 px.
++  const [modoOscuro, setModoOscuro] = useState(false)
++  useEffect(() => {
++    document.documentElement.dataset.tema = modoOscuro ? 'oscuro' : 'claro'
++  }, [modoOscuro])
+   // Estado para controlar la visibilidad del modal de Metodología
+   const [mostrarNotas, setMostrarNotas] = useState(false)
+ 
+@@ -27,7 +31,7 @@ export default function App() {
+   if (cargando) return <p className={estilos.estado}>Cargando datos…</p>
+ 
+   return (
+-    <div className={`${estilos.frame} ${isDarkMode ? estilos.dark : ''}`}>
++    <div className={estilos.frame}>
+       <div className={estilos.barraSuperiorGlobal}>
+         <p className={estilos.etiqueta}>
+           <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
+@@ -37,11 +41,11 @@ export default function App() {
+         {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
+         <div className={estilos.controlesGlobales}>
+           <button 
+-            onClick={() => setIsDarkMode(!isDarkMode)} 
++            onClick={() => setModoOscuro(!modoOscuro)}
+             className={estilos.botonTema}
+             title="Cambiar modo oscuro/claro"
+           >
+-            {isDarkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
++            {modoOscuro ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
+           </button>
+           <button 
+             onClick={() => setMostrarNotas(!mostrarNotas)} 
+diff --git a/src/components/charts/DispersionPib.tsx b/src/components/charts/DispersionPib.tsx
+index e8ef8f1..d05a360 100644
+--- a/src/components/charts/DispersionPib.tsx
++++ b/src/components/charts/DispersionPib.tsx
+@@ -97,9 +97,9 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
+               {datos.map((d) => (
+                 <Cell
+                   key={d.iso}
+-                  fill={d.iso === pais ? colores.marino : colores.emision}
++                  fill={d.iso === pais ? colores.texto : colores.emision}
+                   fillOpacity={d.iso === pais ? 0.9 : 0.5}
+-                  stroke={d.iso === pais ? colores.marino : colores.emision}
++                  stroke={d.iso === pais ? colores.texto : colores.emision}
+                 />
+               ))}
+             </Scatter>
+diff --git a/src/components/charts/Grafica.module.css b/src/components/charts/Grafica.module.css
+index 49c3bea..503637d 100644
+--- a/src/components/charts/Grafica.module.css
++++ b/src/components/charts/Grafica.module.css
+@@ -27,7 +27,7 @@
+ 
+ .activa {
+   background: var(--color-tarjeta);
+-  color: var(--color-marino);
++  color: var(--color-texto);
+   font-weight: 600;
+   box-shadow: var(--sombra);
+ }
+@@ -42,8 +42,9 @@
+ .tooltip {
+   padding: 8px 10px;
+   border-radius: 8px;
+-  background: var(--color-marino);
+-  color: #fff;
++  background: var(--color-encabezado);
++  color: var(--color-texto-invertido);
++  border: 1px solid var(--color-borde);
+   font-size: var(--texto-nota);
+   line-height: 1.5;
+   box-shadow: var(--sombra);
+diff --git a/src/components/charts/RankingPaises.tsx b/src/components/charts/RankingPaises.tsx
+index 819a0fa..fdde752 100644
+--- a/src/components/charts/RankingPaises.tsx
++++ b/src/components/charts/RankingPaises.tsx
+@@ -1,7 +1,7 @@
+ import { useState } from 'react'
+ import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+ import { useFiltros } from '../../context/filtros.ts'
+-import { colores, escalaMapa } from '../../styles/palette.ts'
++import { colores } from '../../styles/palette.ts'
+ import type { RegistroPais } from '../../types.ts'
+ import { topPaises } from '../../utils/calculos.ts'
+ import { numero } from '../../utils/formato.ts'
+@@ -65,13 +65,13 @@ export function RankingPaises({ paises, className }: { paises: RegistroPais[]; c
+             />
+             <Bar dataKey="valor" radius={[0, 3, 3, 0]} barSize={14} isAnimationActive={false}>
+               {datos.map((d) => (
+-                <Cell key={d.iso} fill={d.iso === pais ? escalaMapa[4] : colores.emision} />
++                <Cell key={d.iso} fill={d.iso === pais ? colores.destacado : colores.emision} />
+               ))}
+               <LabelList
+                 dataKey="valor"
+                 position="right"
+                 formatter={(v) => numero(Number(v), modo === 'total' ? 0 : 1)}
+-                style={{ fontSize: 11, fill: colores.marino }}
++                style={{ fontSize: 11, fill: colores.texto }}
+               />
+             </Bar>
+           </BarChart>
+diff --git a/src/components/charts/ejes.ts b/src/components/charts/ejes.ts
+index c06a901..8df4fa3 100644
+--- a/src/components/charts/ejes.ts
++++ b/src/components/charts/ejes.ts
+@@ -3,4 +3,10 @@ import { colores } from '../../styles/palette.ts'
+ /** Estilo común de ejes y tooltips de Recharts (nivel 3: gris, 11 px). */
+ export const ticks = { fontSize: 11, fill: colores.textoSec }
+ export const lineaEje = { stroke: colores.borde }
+-export const estiloTooltip = { fontSize: 12, borderRadius: 8, borderColor: colores.borde }
++export const estiloTooltip = {
++  fontSize: 12,
++  borderRadius: 8,
++  borderColor: colores.borde,
++  backgroundColor: colores.tarjeta,
++  color: colores.texto,
++}
+diff --git a/src/components/kpis/Kpi.module.css b/src/components/kpis/Kpi.module.css
+index 7be866d..31b9929 100644
+--- a/src/components/kpis/Kpi.module.css
++++ b/src/components/kpis/Kpi.module.css
+@@ -13,14 +13,14 @@
+   font-size: var(--texto-kpi-principal);
+   font-weight: 700;
+   line-height: 1;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+ }
+ 
+ .valor {
+   font-size: var(--texto-kpi);
+   font-weight: 700;
+   line-height: 1.1;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+   white-space: nowrap;
+ }
+ 
+@@ -52,7 +52,7 @@
+ .etiquetaFuerte {
+   font-size: var(--texto-sec);
+   font-weight: 600;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+ }
+ 
+ .etiquetaSec {
+@@ -70,7 +70,7 @@
+ .unidadFuerte {
+   font-size: var(--texto-tarjeta);
+   font-weight: 600;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+ }
+ 
+ .delta {
+@@ -114,7 +114,7 @@
+   font-size: 22px;
+   font-weight: 700;
+   line-height: 1.15;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+   white-space: nowrap;
+   overflow: hidden;
+   text-overflow: ellipsis;
+@@ -174,15 +174,15 @@
+ 
+ .cifra {
+   font-weight: 600;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+   font-variant-numeric: tabular-nums;
+ }
+ 
+ .seleccionado .nombreFila {
+-  color: var(--color-marino);
++  color: var(--color-texto);
+   font-weight: 600;
+ }
+ 
+ .seleccionado .relleno {
+-  background: var(--escala-5);
++  background: var(--color-destacado);
+ }
+diff --git a/src/components/kpis/KpiPrincipal.tsx b/src/components/kpis/KpiPrincipal.tsx
+index 437f69b..febc160 100644
+--- a/src/components/kpis/KpiPrincipal.tsx
++++ b/src/components/kpis/KpiPrincipal.tsx
+@@ -2,6 +2,7 @@ import { Area, AreaChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAx
+ import { useFiltros } from '../../context/filtros.ts'
+ import type { Alcance } from '../../hooks/useAlcance.ts'
+ import { colores } from '../../styles/palette.ts'
++import { estiloTooltip } from '../charts/ejes.ts'
+ import { ANIO_MIN } from '../../types.ts'
+ import { cambioPct } from '../../utils/calculos.ts'
+ import { numero, porcentaje } from '../../utils/formato.ts'
+@@ -60,7 +61,7 @@ export function KpiPrincipal({ alcance, className }: Props) {
+               cursor={false}
+               formatter={(v) => [`${numero(Number(v), 2)} t/hab`, 'CO₂ per cápita']}
+               labelFormatter={(_, datos) => datos?.[0]?.payload?.anio ?? ''}
+-              contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: colores.borde }}
++              contentStyle={estiloTooltip}
+             />
+             <Area
+               type="monotone"
+@@ -72,7 +73,7 @@ export function KpiPrincipal({ alcance, className }: Props) {
+               isAnimationActive={false}
+             />
+             {actual?.co2_pc != null && (
+-              <ReferenceDot x={anio} y={actual.co2_pc} r={4} fill={colores.marino} stroke="#fff" />
++              <ReferenceDot x={anio} y={actual.co2_pc} r={4} fill={colores.texto} stroke={colores.tarjeta} />
+             )}
+           </AreaChart>
+         </ResponsiveContainer>
+diff --git a/src/components/layout/Header.module.css b/src/components/layout/Header.module.css
+index 637614f..13081d3 100644
+--- a/src/components/layout/Header.module.css
++++ b/src/components/layout/Header.module.css
+@@ -2,8 +2,8 @@
+ .header {
+   min-height: 72px;
+   padding: 14px var(--margen);
+-  background: var(--color-marino);
+-  color: var(--color-tarjeta);
++  background: var(--color-encabezado);
++  color: var(--color-texto-invertido);
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+@@ -13,7 +13,7 @@
+ .titulo {
+   font-size: var(--texto-titulo);
+   font-weight: 700;
+-  color: var(--color-tarjeta);
++  color: var(--color-texto-invertido);
+   line-height: 1.15;
+   letter-spacing: -0.01em;
+ }
+@@ -41,7 +41,7 @@
+ }
+ 
+ .filtroAnio strong {
+-  color: var(--color-tarjeta);
++  color: var(--color-texto-invertido);
+   font-size: var(--texto-sec);
+   font-weight: 700;
+ }
+@@ -76,21 +76,21 @@
+   border: 1px solid rgba(255, 255, 255, 0.25);
+   border-radius: 8px;
+   background: rgba(255, 255, 255, 0.08);
+-  color: var(--color-tarjeta);
++  color: var(--color-texto-invertido);
+   cursor: pointer;
+   min-width: 140px;
+   max-width: 180px;
+ }
+ 
+ .select option {
+-  color: var(--color-marino);
++  background: var(--color-tarjeta);
++  color: var(--color-texto);
+ }
+ 
+-
+ .botonLimpiar {
+-  background-color: #f1f5f9;
+-  border: 1px solid #cbd5e1;
+-  color: #334155;
++  background-color: var(--color-control);
++  border: 1px solid var(--color-control-borde);
++  color: var(--color-texto);
+   padding: 0.4rem 0.7rem;
+   border-radius: 6px;
+   font-size: 0.8rem;
+@@ -106,19 +106,5 @@
+ }
+ 
+ .botonLimpiar:hover {
+-  background-color: #e2e8f0;
+-  border-color: #94a3b8;
+-}
+-
+-/* Soporte para modo oscuro */
+-.dark .botonLimpiar,
+-div[class*="dark"] .botonLimpiar {
+-  background-color: #334155 !important;
+-  color: #f8fafc !important;
+-  border-color: #475569 !important;
++  background-color: var(--color-control-hover);
+ }
+-
+-.dark .botonLimpiar:hover,
+-div[class*="dark"] .botonLimpiar:hover {
+-  background-color: #475569 !important;
+-}
+\ No newline at end of file
+diff --git a/src/components/layout/Tarjeta.module.css b/src/components/layout/Tarjeta.module.css
+index 05417fb..82678d3 100644
+--- a/src/components/layout/Tarjeta.module.css
++++ b/src/components/layout/Tarjeta.module.css
+@@ -21,7 +21,7 @@
+ .titulo {
+   font-size: var(--texto-tarjeta);
+   font-weight: 600;
+-  color: var(--color-marino);
++  color: var(--color-texto);
+ }
+ 
+ .subtitulo {
+@@ -53,7 +53,7 @@
+ .tituloContenedor {
+   display: flex;
+   align-items: flex-start;
+-  gap: 0.5hr;
++  gap: 8px;
+   position: relative;
+ }
+ 
+@@ -67,7 +67,7 @@
+   background: transparent;
+   border: none;
+   font-size: 0.95rem;
+-  color: #64748b;
++  color: var(--color-texto-sec);
+   cursor: pointer;
+   padding: 0;
+   line-height: 1;
+@@ -75,19 +75,16 @@
+ }
+ 
+ .botonAyuda:hover {
+-  color: #0f172a;
+-}
+-
+-.dark .botonAyuda:hover {
+-  color: #f8fafc;
++  color: var(--color-texto);
+ }
+ 
+ .tooltipAyuda {
+   position: absolute;
+   left: 0;
+   top: 1.5rem;
+-  background: #1e293b;
+-  color: #f8fafc;
++  background: var(--color-encabezado);
++  color: var(--color-texto-invertido);
++  border: 1px solid var(--color-borde);
+   padding: 0.6rem 0.8rem;
+   border-radius: 6px;
+   font-size: 0.75rem;
+diff --git a/src/components/map/Mapa.module.css b/src/components/map/Mapa.module.css
+index f5ca1c8..fc8dd16 100644
+--- a/src/components/map/Mapa.module.css
++++ b/src/components/map/Mapa.module.css
+@@ -26,8 +26,9 @@
+   transform: translate(12px, -110%);
+   padding: 8px 10px;
+   border-radius: 8px;
+-  background: var(--color-marino);
+-  color: #fff;
++  background: var(--color-encabezado);
++  color: var(--color-texto-invertido);
++  border: 1px solid var(--color-borde);
+   font-size: var(--texto-nota);
+   line-height: 1.5;
+   white-space: nowrap;
+diff --git a/src/components/map/MapaCO2.tsx b/src/components/map/MapaCO2.tsx
+index 2173346..2c7b766 100644
+--- a/src/components/map/MapaCO2.tsx
++++ b/src/components/map/MapaCO2.tsx
+@@ -24,8 +24,8 @@ interface Hover {
+ }
+ 
+ /**
+-- Mapa coroplético de CO₂ per cápita del año filtrado. Mapa: distribución geográfica.
+-- Clic en un país para filtrar (otro clic lo quita).
++ * Mapa coroplético de CO₂ per cápita del año filtrado. Mapa: distribución geográfica.
++ * Clic en un país para filtrarlo (otro clic lo quita).
+  */
+ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; className?: string }) {
+   const { anio, continente, pais, setContinente, setPais } = useFiltros()
+@@ -87,13 +87,9 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
+                     className={estilos.pais}
+                     fill={valor != null ? escala(valor) : colores.sinDato}
+                     fillOpacity={fuera ? 0.2 : 1}
+-                    stroke={elegido ? '#2563eb' : '#ffffff'}
++                    // El borde entre países toma el color de la tarjeta: sin líneas blancas en oscuro
++                    stroke={elegido ? colores.texto : colores.tarjeta}
+                     strokeWidth={elegido ? 2 : 0.4}
+-                    style={{
+-                      default: { outline: 'none' },
+-                      hover: { fill: '#f97316', outline: 'none', cursor: 'pointer' },
+-                      pressed: { outline: 'none' },
+-                    }}
+                     onClick={() => alClic(iso)}
+                     onMouseMove={(e) => alMover(e, iso, nombre)}
+                   />
+diff --git a/src/index.css b/src/index.css
+index cd11602..cad97c4 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -12,11 +12,12 @@ body {
+ 
+ body {
+   background: var(--color-fondo);
+-  color: var(--color-marino);
++  color: var(--color-texto);
+   font-family: var(--fuente);
+   font-size: var(--texto-sec);
+   line-height: 1.4;
+   -webkit-font-smoothing: antialiased;
++  transition: background-color 0.2s, color 0.2s;
+ }
+ 
+ h1,
+diff --git a/src/styles/palette.css b/src/styles/palette.css
+index 11bd067..4eac708 100644
+--- a/src/styles/palette.css
++++ b/src/styles/palette.css
+@@ -4,11 +4,18 @@
+  */
+ :root {
+   /* Estructura */
+-  --color-marino: #1b2a4a;        /* títulos, texto principal, encabezado */
++  --color-marino: #1b2a4a;        /* azul marino de la paleta (texto y encabezado en modo claro) */
+   --color-fondo: #f7f7f5;         /* fondo del dashboard */
+   --color-tarjeta: #ffffff;       /* fondo de tarjetas */
+   --color-texto-sec: #6b7280;     /* texto secundario, ejes, etiquetas */
+   --color-borde: #e5e7eb;         /* bordes y líneas de cuadrícula */
++  --color-texto: #1b2a4a;         /* texto principal (marino en claro) */
++  --color-texto-invertido: #ffffff; /* texto sobre el encabezado y tooltips */
++  --color-encabezado: #1b2a4a;    /* barra del encabezado */
++  --color-destacado: #4a2c1a;     /* país seleccionado en barras */
++  --color-control: #f1f5f9;       /* botones secundarios */
++  --color-control-hover: #e2e8f0;
++  --color-control-borde: #cbd5e1;
+ 
+   /* Significado */
+   --color-emision: #c65d21;       /* emisiones: acento principal */
+@@ -22,6 +29,14 @@
+   --escala-4: #8b4513;
+   --escala-5: #4a2c1a;
+ 
++  /* Líneas por continente (en oscuro se usan los tonos claros de la escala) */
++  --serie-1: #4a2c1a;
++  --serie-2: #8b4513;
++  --serie-3: #c65d21;
++  --serie-4: #f2b880;
++  --serie-5: #1b2a4a;
++  --serie-6: #6b7280;
++
+   /* Tipografía */
+   --fuente: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+   --texto-titulo: 28px;           /* título del dashboard */
+@@ -37,4 +52,37 @@
+   --padding-tarjeta: 20px;
+   --margen: 32px;
+   --gutter: 24px;
++
++  color-scheme: light;
++}
++
++/*
++ * Modo oscuro: App.tsx pone data-tema="oscuro" en <html>.
++ * Solo cambian las variables de estructura (fondo, tarjetas, texto, bordes);
++ * la escala naranja-café de los datos es la misma en los dos modos.
++ */
++:root[data-tema='oscuro'] {
++  color-scheme: dark;
++
++  --color-fondo: #0b0f19;
++  --color-tarjeta: #162033;
++  --color-texto: #f1f5f9;
++  --color-texto-sec: #94a3b8;
++  --color-borde: #2a3650;
++  --color-encabezado: #101a2e;
++  --color-destacado: #f2b880;
++  --color-mejora: #14b8a6;
++  --color-sin-dato: #3b475e;
++  --color-control: #1e293b;
++  --color-control-hover: #2a3650;
++  --color-control-borde: #334155;
++
++  --serie-1: #f9e0c7;
++  --serie-2: #f2b880;
++  --serie-3: #c65d21;
++  --serie-4: #8b4513;
++  --serie-5: #f1f5f9;
++  --serie-6: #94a3b8;
++
++  --sombra: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
+ }
+diff --git a/src/styles/palette.ts b/src/styles/palette.ts
+index c86fcc0..3387bb5 100644
+--- a/src/styles/palette.ts
++++ b/src/styles/palette.ts
+@@ -3,14 +3,17 @@
+  * como texto (Recharts, react-simple-maps). Si cambia un color, cambia en los dos.
+  */
+ export const colores = {
+-  marino: '#1B2A4A',
+-  fondo: '#F7F7F5',
+-  tarjeta: '#FFFFFF',
+-  textoSec: '#6B7280',
+-  borde: '#E5E7EB',
++  // Estructura: apuntan a las variables CSS para que cambien con el modo oscuro
++  texto: 'var(--color-texto)',
++  textoSec: 'var(--color-texto-sec)',
++  borde: 'var(--color-borde)',
++  fondo: 'var(--color-fondo)',
++  tarjeta: 'var(--color-tarjeta)',
++  destacado: 'var(--color-destacado)',
++  mejora: 'var(--color-mejora)',
++  sinDato: 'var(--color-sin-dato)',
++  // Datos: iguales en los dos modos
+   emision: '#C65D21',
+-  mejora: '#0F766E',
+-  sinDato: '#D1D5DB',
+ } as const
+ 
+ /** Escala del mapa, de menos a más CO₂ per cápita. */
+@@ -24,7 +27,14 @@ export const cortesMapa = [1, 3, 6, 10] as const
+  * para una línea sobre blanco, así que se usa el azul marino de la paleta en su lugar;
+  * además cada línea cambia de trazo (sólida, punteada, discontinua).
+  */
+-export const tonosSeries = ['#4A2C1A', '#8B4513', '#C65D21', '#F2B880', '#1B2A4A', '#6B7280'] as const
++export const tonosSeries = [
++  'var(--serie-1)',
++  'var(--serie-2)',
++  'var(--serie-3)',
++  'var(--serie-4)',
++  'var(--serie-5)',
++  'var(--serie-6)',
++] as const
+ 
+ /** Colores de las barras apiladas por fuente: escala naranja-café + gris. */
+ export const coloresFuente = {

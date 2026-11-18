@@ -26,8 +26,9 @@
   transform: translate(12px, -110%);
   padding: 8px 10px;
   border-radius: 8px;
-  background: var(--color-marino);
-  color: #fff;
+  background: var(--color-encabezado);
+  color: var(--color-texto-invertido);
+  border: 1px solid var(--color-borde);
   font-size: var(--texto-nota);
   line-height: 1.5;
   white-space: nowrap;

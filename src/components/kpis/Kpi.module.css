@@ -13,14 +13,14 @@
   font-size: var(--texto-kpi-principal);
   font-weight: 700;
   line-height: 1;
-  color: var(--color-marino);
+  color: var(--color-texto);
 }
 
 .valor {
   font-size: var(--texto-kpi);
   font-weight: 700;
   line-height: 1.1;
-  color: var(--color-marino);
+  color: var(--color-texto);
   white-space: nowrap;
 }
 
@@ -52,7 +52,7 @@
 .etiquetaFuerte {
   font-size: var(--texto-sec);
   font-weight: 600;
-  color: var(--color-marino);
+  color: var(--color-texto);
 }
 
 .etiquetaSec {
@@ -70,7 +70,7 @@
 .unidadFuerte {
   font-size: var(--texto-tarjeta);
   font-weight: 600;
-  color: var(--color-marino);
+  color: var(--color-texto);
 }
 
 .delta {
@@ -114,7 +114,7 @@
   font-size: 22px;
   font-weight: 700;
   line-height: 1.15;
-  color: var(--color-marino);
+  color: var(--color-texto);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -174,15 +174,15 @@
 
 .cifra {
   font-weight: 600;
-  color: var(--color-marino);
+  color: var(--color-texto);
   font-variant-numeric: tabular-nums;
 }
 
 .seleccionado .nombreFila {
-  color: var(--color-marino);
+  color: var(--color-texto);
   font-weight: 600;
 }
 
 .seleccionado .relleno {
-  background: var(--escala-5);
+  background: var(--color-destacado);
 }

@@ -2,6 +2,7 @@ import { Area, AreaChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAx
 import { useFiltros } from '../../context/filtros.ts'
 import type { Alcance } from '../../hooks/useAlcance.ts'
 import { colores } from '../../styles/palette.ts'
+import { estiloTooltip } from '../charts/ejes.ts'
 import { ANIO_MIN } from '../../types.ts'
 import { cambioPct } from '../../utils/calculos.ts'
 import { numero, porcentaje } from '../../utils/formato.ts'
@@ -60,7 +61,7 @@ export function KpiPrincipal({ alcance, className }: Props) {
               cursor={false}
               formatter={(v) => [`${numero(Number(v), 2)} t/hab`, 'CO₂ per cápita']}
               labelFormatter={(_, datos) => datos?.[0]?.payload?.anio ?? ''}
-              contentStyle={{ fontSize: 12, borderRadius: 8, borderColor: colores.borde }}
+              contentStyle={estiloTooltip}
             />
             <Area
               type="monotone"
@@ -72,7 +73,7 @@ export function KpiPrincipal({ alcance, className }: Props) {
               isAnimationActive={false}
             />
             {actual?.co2_pc != null && (
-              <ReferenceDot x={anio} y={actual.co2_pc} r={4} fill={colores.marino} stroke="#fff" />
+              <ReferenceDot x={anio} y={actual.co2_pc} r={4} fill={colores.texto} stroke={colores.tarjeta} />
             )}
           </AreaChart>
         </ResponsiveContainer>

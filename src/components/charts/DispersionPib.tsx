@@ -97,9 +97,9 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
               {datos.map((d) => (
                 <Cell
                   key={d.iso}
-                  fill={d.iso === pais ? colores.marino : colores.emision}
+                  fill={d.iso === pais ? colores.texto : colores.emision}
                   fillOpacity={d.iso === pais ? 0.9 : 0.5}
-                  stroke={d.iso === pais ? colores.marino : colores.emision}
+                  stroke={d.iso === pais ? colores.texto : colores.emision}
                 />
               ))}
             </Scatter>

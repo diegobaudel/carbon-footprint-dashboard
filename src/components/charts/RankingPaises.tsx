@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
-import { colores, escalaMapa } from '../../styles/palette.ts'
+import { colores } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
 import { numero } from '../../utils/formato.ts'
@@ -65,13 +65,13 @@ export function RankingPaises({ paises, className }: { paises: RegistroPais[]; c
             />
             <Bar dataKey="valor" radius={[0, 3, 3, 0]} barSize={14} isAnimationActive={false}>
               {datos.map((d) => (
-                <Cell key={d.iso} fill={d.iso === pais ? escalaMapa[4] : colores.emision} />
+                <Cell key={d.iso} fill={d.iso === pais ? colores.destacado : colores.emision} />
               ))}
               <LabelList
                 dataKey="valor"
                 position="right"
                 formatter={(v) => numero(Number(v), modo === 'total' ? 0 : 1)}
-                style={{ fontSize: 11, fill: colores.marino }}
+                style={{ fontSize: 11, fill: colores.texto }}
               />
             </Bar>
           </BarChart>

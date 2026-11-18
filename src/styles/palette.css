@@ -4,11 +4,18 @@
  */
 :root {
   /* Estructura */
-  --color-marino: #1b2a4a;        /* títulos, texto principal, encabezado */
+  --color-marino: #1b2a4a;        /* azul marino de la paleta (texto y encabezado en modo claro) */
   --color-fondo: #f7f7f5;         /* fondo del dashboard */
   --color-tarjeta: #ffffff;       /* fondo de tarjetas */
   --color-texto-sec: #6b7280;     /* texto secundario, ejes, etiquetas */
   --color-borde: #e5e7eb;         /* bordes y líneas de cuadrícula */
+  --color-texto: #1b2a4a;         /* texto principal (marino en claro) */
+  --color-texto-invertido: #ffffff; /* texto sobre el encabezado y tooltips */
+  --color-encabezado: #1b2a4a;    /* barra del encabezado */
+  --color-destacado: #4a2c1a;     /* país seleccionado en barras */
+  --color-control: #f1f5f9;       /* botones secundarios */
+  --color-control-hover: #e2e8f0;
+  --color-control-borde: #cbd5e1;
 
   /* Significado */
   --color-emision: #c65d21;       /* emisiones: acento principal */
@@ -21,6 +28,14 @@
   --escala-3: #c65d21;
   --escala-4: #8b4513;
   --escala-5: #4a2c1a;
+
+  /* Líneas por continente (en oscuro se usan los tonos claros de la escala) */
+  --serie-1: #4a2c1a;
+  --serie-2: #8b4513;
+  --serie-3: #c65d21;
+  --serie-4: #f2b880;
+  --serie-5: #1b2a4a;
+  --serie-6: #6b7280;
 
   /* Tipografía */
   --fuente: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -37,4 +52,37 @@
   --padding-tarjeta: 20px;
   --margen: 32px;
   --gutter: 24px;
+
+  color-scheme: light;
+}
+
+/*
+ * Modo oscuro: App.tsx pone data-tema="oscuro" en <html>.
+ * Solo cambian las variables de estructura (fondo, tarjetas, texto, bordes);
+ * la escala naranja-café de los datos es la misma en los dos modos.
+ */
+:root[data-tema='oscuro'] {
+  color-scheme: dark;
+
+  --color-fondo: #0b0f19;
+  --color-tarjeta: #162033;
+  --color-texto: #f1f5f9;
+  --color-texto-sec: #94a3b8;
+  --color-borde: #2a3650;
+  --color-encabezado: #101a2e;
+  --color-destacado: #f2b880;
+  --color-mejora: #14b8a6;
+  --color-sin-dato: #3b475e;
+  --color-control: #1e293b;
+  --color-control-hover: #2a3650;
+  --color-control-borde: #334155;
+
+  --serie-1: #f9e0c7;
+  --serie-2: #f2b880;
+  --serie-3: #c65d21;
+  --serie-4: #8b4513;
+  --serie-5: #f1f5f9;
+  --serie-6: #94a3b8;
+
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.3);
 }

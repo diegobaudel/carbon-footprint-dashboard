@@ -27,7 +27,7 @@
 
 .activa {
   background: var(--color-tarjeta);
-  color: var(--color-marino);
+  color: var(--color-texto);
   font-weight: 600;
   box-shadow: var(--sombra);
 }
@@ -42,8 +42,9 @@
 .tooltip {
   padding: 8px 10px;
   border-radius: 8px;
-  background: var(--color-marino);
-  color: #fff;
+  background: var(--color-encabezado);
+  color: var(--color-texto-invertido);
+  border: 1px solid var(--color-borde);
   font-size: var(--texto-nota);
   line-height: 1.5;
   box-shadow: var(--sombra);

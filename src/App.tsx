@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDatos } from './hooks/useDatos.ts'
 import { useAlcance } from './hooks/useAlcance.ts'
 import { Header } from './components/layout/Header.tsx'
@@ -18,8 +18,12 @@ export default function App() {
   const { paises, agregados, cargando, error } = useDatos()
   const alcance = useAlcance(paises, agregados)
 
-  // Estado para el Modo Oscuro / Claro
-  const [isDarkMode, setIsDarkMode] = useState(false)
+  // Modo oscuro: se marca en <html data-tema="oscuro"> para que las variables de
+  // palette.css cambien en toda la pantalla, no solo dentro del frame de 1440 px.
+  const [modoOscuro, setModoOscuro] = useState(false)
+  useEffect(() => {
+    document.documentElement.dataset.tema = modoOscuro ? 'oscuro' : 'claro'
+  }, [modoOscuro])
   // Estado para controlar la visibilidad del modal de Metodología
   const [mostrarNotas, setMostrarNotas] = useState(false)
 
@@ -27,7 +31,7 @@ export default function App() {
   if (cargando) return <p className={estilos.estado}>Cargando datos…</p>
 
   return (
-    <div className={`${estilos.frame} ${isDarkMode ? estilos.dark : ''}`}>
+    <div className={estilos.frame}>
       <div className={estilos.barraSuperiorGlobal}>
         <p className={estilos.etiqueta}>
           <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
@@ -37,11 +41,11 @@ export default function App() {
         {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
         <div className={estilos.controlesGlobales}>
           <button 
-            onClick={() => setIsDarkMode(!isDarkMode)} 
+            onClick={() => setModoOscuro(!modoOscuro)}
             className={estilos.botonTema}
             title="Cambiar modo oscuro/claro"
           >
-            {isDarkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
+            {modoOscuro ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
           </button>
           <button 
             onClick={() => setMostrarNotas(!mostrarNotas)} 
@@ -83,4 +87,4 @@ export default function App() {
       </main>
     </div>
   )
-}
+}
