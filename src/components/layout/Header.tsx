@@ -20,6 +20,15 @@ export function Header({ paises }: Props) {
     return [...vistos].sort((a, b) => a[1].localeCompare(b[1], 'es'))
   }, [paises, continente])
 
+  // Comprobar si hay filtros activos para saber si mostrar el botón de reinicio
+  const hayFiltrosActivos = continente !== 'Todos' || pais !== 'Todos' || anio !== ANIO_MAX
+
+  function limpiarFiltros() {
+    setContinente('Todos')
+    setPais('Todos')
+    setAnio(ANIO_MAX) // O ANIO_MIN, según prefieras por defecto
+  }
+
   return (
     <header className={estilos.header}>
       <div>
@@ -74,6 +83,18 @@ export function Header({ paises }: Props) {
             ))}
           </select>
         </label>
+
+        {/* Botón de Limpiar Filtros (aparece solo si hay algún filtro modificado) */}
+        {hayFiltrosActivos && (
+          <button 
+            onClick={limpiarFiltros}
+            className={estilos.botonLimpiar}
+            title="Restablecer filtros a la vista global"
+            type="button"
+          >
+            🔄 Restablecer 
+          </button>
+        )}
       </div>
     </header>
   )

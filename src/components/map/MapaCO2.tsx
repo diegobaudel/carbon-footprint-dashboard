@@ -24,8 +24,8 @@ interface Hover {
 }
 
 /**
- * Mapa coroplético de CO₂ per cápita del año filtrado. Mapa: distribución geográfica.
- * Clic en un país para filtrarlo (otro clic lo quita).
+- Mapa coroplético de CO₂ per cápita del año filtrado. Mapa: distribución geográfica.
+- Clic en un país para filtrar (otro clic lo quita).
  */
 export function MapaCO2({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais, setContinente, setPais } = useFiltros()
@@ -62,7 +62,7 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
   }
 
   return (
-    <Tarjeta titulo="Mapa mundial de CO₂ per cápita" subtitulo="Clic en un país para filtrar" className={className}>
+    <Tarjeta titulo="Mapa mundial de CO₂ per cápita" subtitulo="Haz clic en un país para filtrarlo globalmente" className={className}>
       <div className={estilos.contenedor} onMouseLeave={() => setHover(null)}>
         <ComposableMap
           projection="geoEqualEarth"
@@ -86,9 +86,14 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
                     geography={geo}
                     className={estilos.pais}
                     fill={valor != null ? escala(valor) : colores.sinDato}
-                    fillOpacity={fuera ? 0.3 : 1}
-                    stroke={elegido ? colores.marino : '#ffffff'}
-                    strokeWidth={elegido ? 1.6 : 0.4}
+                    fillOpacity={fuera ? 0.2 : 1}
+                    stroke={elegido ? '#2563eb' : '#ffffff'}
+                    strokeWidth={elegido ? 2 : 0.4}
+                    style={{
+                      default: { outline: 'none' },
+                      hover: { fill: '#f97316', outline: 'none', cursor: 'pointer' },
+                      pressed: { outline: 'none' },
+                    }}
                     onClick={() => alClic(iso)}
                     onMouseMove={(e) => alMover(e, iso, nombre)}
                   />
@@ -104,7 +109,7 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
             <br />
             {hover.registro?.co2_pc != null
               ? `${numero(hover.registro.co2_pc, 1)} t/hab · Población ${poblacion(hover.registro.poblacion)}`
-              : 'Sin dato'}
+              : 'Sin dato registrado'}
           </div>
         )}
       </div>

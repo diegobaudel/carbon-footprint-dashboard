@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useDatos } from './hooks/useDatos.ts'
 import { useAlcance } from './hooks/useAlcance.ts'
 import { Header } from './components/layout/Header.tsx'
@@ -13,23 +14,45 @@ import { DispersionPib } from './components/charts/DispersionPib.tsx'
 import { BarrasFuente } from './components/charts/BarrasFuente.tsx'
 import estilos from './App.module.css'
 
-/**
- * Dashboard "Huella de Carbono". El orden de las tarjetas sigue las filas del wireframe:
- * encabezado · KPIs · mapa + ranking · líneas + dispersión · fuentes + notas.
- */
 export default function App() {
   const { paises, agregados, cargando, error } = useDatos()
   const alcance = useAlcance(paises, agregados)
+
+  // Estado para el Modo Oscuro / Claro
+  const [isDarkMode, setIsDarkMode] = useState(false)
+  // Estado para controlar la visibilidad del modal de Metodología
+  const [mostrarNotas, setMostrarNotas] = useState(false)
 
   if (error) return <p className={estilos.estado}>No se pudieron cargar los datos: {error}</p>
   if (cargando) return <p className={estilos.estado}>Cargando datos…</p>
 
   return (
-    <div className={estilos.frame}>
-      <p className={estilos.etiqueta}>
-        <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
-        Dashboard híbrido estratégico-táctico · Visualización de Datos, UCARIBE
-      </p>
+    <div className={`${estilos.frame} ${isDarkMode ? estilos.dark : ''}`}>
+      <div className={estilos.barraSuperiorGlobal}>
+        <p className={estilos.etiqueta}>
+          <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
+          Dashboard híbrido estratégico-táctico · Visualización de Datos, UCARIBE
+        </p>
+        
+        {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
+        <div className={estilos.controlesGlobales}>
+          <button 
+            onClick={() => setIsDarkMode(!isDarkMode)} 
+            className={estilos.botonTema}
+            title="Cambiar modo oscuro/claro"
+          >
+            {isDarkMode ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
+          </button>
+          <button 
+            onClick={() => setMostrarNotas(!mostrarNotas)} 
+            className={estilos.botonInfo}
+            title="Notas y metodología"
+          >
+            ℹ️ Metodología
+          </button>
+        </div>
+      </div>
+
       <Header paises={paises} />
 
       <main className={estilos.dashboard}>
@@ -47,7 +70,16 @@ export default function App() {
         <DispersionPib paises={paises} className={estilos.dispersion} />
 
         <BarrasFuente paises={paises} className={estilos.fuentes} />
-        <NotasMetodologia className={estilos.notas} />
+        
+        {/* Si se activa el botón flotante, muestra el componente de notas en formato modal/panel */}
+        {mostrarNotas && (
+          <div className={estilos.modalOverlay} onClick={() => setMostrarNotas(false)}>
+            <div className={estilos.modalContenido} onClick={(e) => e.stopPropagation()}>
+              <button className={estilos.cerrarModal} onClick={() => setMostrarNotas(false)}>✕</button>
+              <NotasMetodologia className={estilos.notas} />
+            </div>
+          </div>
+        )}
       </main>
     </div>
   )

@@ -61,3 +61,227 @@
   padding: var(--margen);
   color: var(--color-texto-sec);
 }
+
+
+/* Asegurar que la clase dark aplique colores a todo el contenedor y sus hijos */
+.frame.dark {
+  background-color: #0b0f19 !important;
+  color: #f8fafc !important;
+}
+
+/* Fondo oscuro para las tarjetas de KPIs y gráficos cuando el modo oscuro está activo */
+.dark :global(.card),
+.dark div[class*="kpi"],
+.dark div[class*="tarjeta"],
+.dark section,
+.dark aside {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Ajuste de textos principales y secundarios en modo oscuro */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark p, .dark span {
+  color: #f8fafc !important;
+}
+
+/* Estilos de los botones del header superior */
+.barraSuperiorGlobal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.controlesGlobales {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.botonTema, .botonInfo {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.dark .botonTema, .dark .botonInfo {
+  background-color: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.botonTema:hover, .botonInfo:hover {
+  background-color: #e2e8f0;
+}
+
+.dark .botonTema:hover, .dark .botonInfo:hover {
+  background-color: #475569;
+}
+
+/* Modal Flotante de Metodología */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContenido {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.dark .modalContenido {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+.cerrarModal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: inherit;
+}/* Asegurar que la clase dark aplique colores a todo el contenedor y sus hijos */
+.frame.dark {
+  background-color: #0b0f19 !important;
+  color: #f8fafc !important;
+}
+
+/* Fondo oscuro para las tarjetas de KPIs y gráficos cuando el modo oscuro está activo */
+.dark :global(.card),
+.dark div[class*="kpi"],
+.dark div[class*="tarjeta"],
+.dark section,
+.dark aside {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+/* Ajuste de textos principales y secundarios en modo oscuro */
+.dark h1, .dark h2, .dark h3, .dark h4, .dark p, .dark span {
+  color: #f8fafc !important;
+}
+
+/* Estilos de los botones del header superior */
+.barraSuperiorGlobal {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.controlesGlobales {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.botonTema, .botonInfo {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.dark .botonTema, .dark .botonInfo {
+  background-color: #334155;
+  color: #f8fafc;
+  border-color: #475569;
+}
+
+.botonTema:hover, .botonInfo:hover {
+  background-color: #e2e8f0;
+}
+
+.dark .botonTema:hover, .dark .botonInfo:hover {
+  background-color: #475569;
+}
+
+/* Modal Flotante de Metodología */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modalContenido {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+}
+
+.dark .modalContenido {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
+.cerrarModal {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* Estilo general para los tooltips flotantes */
+.tooltip, div[class*="tooltip"] {
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-size: 0.8rem;
+  z-index: 100;
+}
+
+/* Adaptación del tooltip cuando el modo oscuro está activo (.dark) */
+.dark .tooltip, 
+.dark div[class*="tooltip"],
+.dark [class*="tooltipAyuda"] {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}

@@ -85,3 +85,40 @@
 .select option {
   color: var(--color-marino);
 }
+
+
+.botonLimpiar {
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 0.4rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  align-self: flex-end;
+  height: fit-content;
+  margin-bottom: 0.15rem;
+}
+
+.botonLimpiar:hover {
+  background-color: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+/* Soporte para modo oscuro */
+.dark .botonLimpiar,
+div[class*="dark"] .botonLimpiar {
+  background-color: #334155 !important;
+  color: #f8fafc !important;
+  border-color: #475569 !important;
+}
+
+.dark .botonLimpiar:hover,
+div[class*="dark"] .botonLimpiar:hover {
+  background-color: #475569 !important;
+}
