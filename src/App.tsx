@@ -32,32 +32,35 @@ export default function App() {
 
   return (
     <div className={estilos.frame}>
-      <div className={estilos.barraSuperiorGlobal}>
-        <p className={estilos.etiqueta}>
-          <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
-          Dashboard híbrido estratégico-táctico · Visualización de Datos, UCARIBE
-        </p>
+      {/* Cabecera fija al hacer scroll: etiqueta del proyecto, botones globales y filtros */}
+      <div className={estilos.cabeceraFija}>
+        <div className={estilos.barraSuperiorGlobal}>
+          <p className={estilos.etiqueta}>
+            <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
+            Dashboard híbrido estratégico-táctico · Visualización de Datos, UCARIBE
+          </p>
         
-        {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
-        <div className={estilos.controlesGlobales}>
-          <button 
-            onClick={() => setModoOscuro(!modoOscuro)}
-            className={estilos.botonTema}
-            title="Cambiar modo oscuro/claro"
-          >
-            {modoOscuro ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
-          </button>
-          <button 
-            onClick={() => setMostrarNotas(!mostrarNotas)} 
-            className={estilos.botonInfo}
-            title="Notas y metodología"
-          >
-            ℹ️ Metodología
-          </button>
+          {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
+          <div className={estilos.controlesGlobales}>
+            <button 
+              onClick={() => setModoOscuro(!modoOscuro)}
+              className={estilos.botonTema}
+              title="Cambiar modo oscuro/claro"
+            >
+              {modoOscuro ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
+            </button>
+            <button 
+              onClick={() => setMostrarNotas(!mostrarNotas)} 
+              className={estilos.botonInfo}
+              title="Notas y metodología"
+            >
+              ℹ️ Metodología
+            </button>
+          </div>
         </div>
-      </div>
 
-      <Header paises={paises} />
+        <Header paises={paises} />
+      </div>
 
       <main className={estilos.dashboard}>
         <KpiPrincipal alcance={alcance} className={estilos.kpiPrincipal} />

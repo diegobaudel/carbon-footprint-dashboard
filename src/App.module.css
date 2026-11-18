@@ -63,6 +63,14 @@
 }
 
 /* Barra superior: etiqueta del proyecto y botones globales */
+/* Toda la cabecera (Proyecto 2 → filtros activos) se queda arriba al hacer scroll */
+.cabeceraFija {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-fondo);
+}
+
 .barraSuperiorGlobal {
   display: flex;
   justify-content: space-between;
@@ -75,6 +83,7 @@
 .controlesGlobales {
   display: flex;
   gap: 0.5rem;
+  padding-right: var(--margen);
 }
 
 .botonTema,

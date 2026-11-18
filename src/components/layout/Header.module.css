@@ -1,8 +1,6 @@
-/* Encabezado + indicador de filtros: se quedan fijos arriba al hacer scroll */
+/* Encabezado + indicador de filtros (la parte fija la controla .cabeceraFija en App) */
 .fijo {
-  position: sticky;
-  top: 0;
-  z-index: 50;
+  position: relative;
 }
 
 /* Barra de encabezado azul marino, de lado a lado del frame (fila 0, 72 px) */
