@@ -25,7 +25,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci --legacy-peer-deps
+      # npm install (no npm ci): el package-lock se genera en Windows y le faltan
+      # dependencias opcionales que Linux necesita para Vite 8
+      - run: npm install --legacy-peer-deps --no-audit --no-fund
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
