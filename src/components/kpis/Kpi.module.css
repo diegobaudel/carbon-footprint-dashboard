@@ -186,3 +186,26 @@
 .seleccionado .relleno {
   background: var(--color-destacado);
 }
+
+/* Destello al cambiar un filtro: la cifra "aparece" para que se note que se actualizó.
+   Se reinicia porque el elemento se vuelve a montar con otra key. */
+.destello {
+  animation: destello 0.45s ease-out;
+}
+
+@keyframes destello {
+  from {
+    opacity: 0.25;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .destello {
+    animation: none;
+  }
+}

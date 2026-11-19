@@ -16,14 +16,14 @@ export function MayorReduccion({ paises }: { paises: RegistroPais[] }) {
   return (
     <Tarjeta titulo="Mayor reducción relativa">
       {resultado ? (
-        <>
+        <div key={`${anio}-${continente}`} className={estilos.destello}>
           <p className={estilos.nombrePais} title={resultado.pais.pais}>
             {resultado.pais.pais}
           </p>
           <p className={`${estilos.valor} ${resultado.cambio < 0 ? estilos.mejora : estilos.aumento}`}>
             {porcentaje(resultado.cambio)}
           </p>
-        </>
+        </div>
       ) : (
         <p className={estilos.etiqueta}>Elige un año posterior a {ANIO_MIN} para comparar.</p>
       )}

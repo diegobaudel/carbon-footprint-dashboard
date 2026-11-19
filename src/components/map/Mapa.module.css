@@ -1,42 +1,95 @@
+/* El mapa crea su propio contexto de apilado: los paneles de Leaflet (z-index 400+)
+   no se montan sobre la cabecera fija ni sobre el modal */
 .contenedor {
   flex: 1;
   min-height: 0;
   position: relative;
+  isolation: isolate;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--color-borde);
 }
 
-.svg {
+.mapa {
   width: 100%;
   height: 100%;
-  display: block;
+  background: var(--color-fondo);
+  font-family: var(--fuente);
 }
 
-.pais {
-  outline: none;
-  cursor: pointer;
-  transition: opacity 0.15s;
-}
-
-.pais:hover {
-  opacity: 0.8;
-}
-
-.tooltip {
+.cargando {
   position: absolute;
-  pointer-events: none;
-  transform: translate(12px, -110%);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--color-texto-sec);
+  font-size: var(--texto-nota);
+}
+
+.botonMundo {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  padding: 4px 10px;
+  border: 1px solid var(--color-control-borde);
+  border-radius: 6px;
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  font-size: var(--texto-nota);
+  cursor: pointer;
+}
+
+.botonMundo:hover {
+  background: var(--color-control-hover);
+}
+
+/* Tooltip de Leaflet (vive fuera del módulo, por eso :global) */
+:global(.leaflet-tooltip.tooltip-co2) {
   padding: 8px 10px;
   border-radius: 8px;
   background: var(--color-encabezado);
   color: var(--color-texto-invertido);
   border: 1px solid var(--color-borde);
+  font-family: var(--fuente);
   font-size: var(--texto-nota);
   line-height: 1.5;
-  white-space: nowrap;
-  box-shadow: var(--sombra);
+  box-shadow: none;
 }
 
-.tooltip strong {
+:global(.leaflet-tooltip.tooltip-co2::before) {
+  display: none;
+}
+
+:global(.leaflet-tooltip.tooltip-co2 strong) {
   font-size: var(--texto-sec);
+}
+
+/* Mapa base de OpenStreetMap en tonos neutros para que resalte la escala naranja-café;
+   en modo oscuro se invierte (calles claras sobre fondo oscuro). Solo afecta las teselas. */
+.contenedor :global(.leaflet-tile-pane) {
+  filter: grayscale(0.85) contrast(0.95) brightness(1.03);
+}
+
+:global(:root[data-tema='oscuro']) .contenedor :global(.leaflet-tile-pane) {
+  filter: grayscale(0.85) invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
+
+/* Controles de zoom y atribución con la paleta del dashboard */
+.contenedor :global(.leaflet-bar a) {
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  border-color: var(--color-borde);
+}
+
+.contenedor :global(.leaflet-control-attribution) {
+  background: color-mix(in srgb, var(--color-tarjeta) 80%, transparent);
+  color: var(--color-texto-sec);
+  font-size: 10px;
+}
+
+.contenedor :global(.leaflet-control-attribution a) {
+  color: var(--color-texto-sec);
 }
 
 .leyenda {

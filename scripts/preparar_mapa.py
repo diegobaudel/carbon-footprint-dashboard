@@ -2,15 +2,17 @@
 Prepara el mapa mundial para el dashboard.
 
 Entrada:
-  data/raw/world-atlas-countries-110m.json   TopoJSON de Natural Earth 1:110m
+  data/raw/world-atlas-countries-50m.json    TopoJSON de Natural Earth 1:50m
                                              (paquete npm world-atlas 2.0.2, licencia ISC)
 Salida:
-  public/data/mundo-110m.json                el mismo TopoJSON, con el codigo ISO3 de cada pais
+  public/data/mundo-50m.json                 el mismo TopoJSON, con el codigo ISO3 de cada pais
                                              en properties.iso para cruzarlo con paises.json
 
 world-atlas identifica cada pais con su codigo ISO numerico (ej. "484" = Mexico);
 aqui se traduce a ISO alfa-3 ("MEX"), que es el que usa Our World in Data.
 Se quita la Antartida porque no tiene datos y ocupa mucho espacio.
+Se usa la escala 1:50m (no 1:110m) para que, al hacer zoom en el mapa de Leaflet,
+los bordes de los paises coincidan con el mapa base.
 
 Uso (desde la raiz del repo):
   pip install pycountry
@@ -22,8 +24,8 @@ import json
 import pycountry
 
 RAIZ = Path(__file__).resolve().parent.parent
-ENTRADA = RAIZ / "data" / "raw" / "world-atlas-countries-110m.json"
-SALIDA = RAIZ / "public" / "data" / "mundo-110m.json"
+ENTRADA = RAIZ / "data" / "raw" / "world-atlas-countries-50m.json"
+SALIDA = RAIZ / "public" / "data" / "mundo-50m.json"
 
 ANTARTIDA = "010"
 

@@ -8,6 +8,7 @@
   min-height: 72px;
   padding: 14px var(--margen);
   background: var(--color-encabezado);
+  border-bottom: 3px solid var(--color-emision);
   color: var(--color-texto-invertido);
   display: flex;
   align-items: center;

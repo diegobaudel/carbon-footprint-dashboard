@@ -31,7 +31,9 @@ export function KpiPrincipal({ alcance, className }: Props) {
       <p className={estilos.etiquetaFuerte}>CO₂ per cápita</p>
       <p className={estilos.etiquetaSec}>({alcance.etiqueta})</p>
       <div className={estilos.filaValor}>
-        <span className={estilos.valorPrincipal}>{numero(actual?.co2_pc, 1)}</span>
+        <span key={`${alcance.etiqueta}-${anio}`} className={`${estilos.valorPrincipal} ${estilos.destello}`}>
+          {numero(actual?.co2_pc, 1)}
+        </span>
         <span className={estilos.unidadFuerte}>t CO₂/hab</span>
       </div>
       <p className={estilos.delta}>

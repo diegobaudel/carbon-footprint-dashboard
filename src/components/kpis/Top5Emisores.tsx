@@ -13,7 +13,7 @@ export function Top5Emisores({ paises }: { paises: RegistroPais[] }) {
 
   return (
     <Tarjeta titulo="Top 5 emisores (Mt CO₂)">
-      <ol className={estilos.lista}>
+      <ol key={`${anio}-${continente}`} className={`${estilos.lista} ${estilos.destello}`}>
         {top.map((p, i) => (
           <li key={p.iso} className={`${estilos.fila} ${p.iso === pais ? estilos.seleccionado : ''}`}>
             <span className={estilos.posicion}>{i + 1}</span>

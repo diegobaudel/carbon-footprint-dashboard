@@ -1,35 +1,144 @@
-import { useMemo, useState, type MouseEvent } from 'react'
-import { ComposableMap, Geographies, Geography, Sphere } from 'react-simple-maps'
+import 'leaflet/dist/leaflet.css'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { GeoJSON, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
+import { DomEvent, type LatLngBoundsExpression, type PathOptions } from 'leaflet'
+import { feature } from 'topojson-client'
+import type { GeometryCollection, Topology } from 'topojson-specification'
+import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import { scaleThreshold } from 'd3-scale'
 import { useFiltros } from '../../context/filtros.ts'
+import { useTema } from '../../hooks/useTema.ts'
 import { colores, cortesMapa, escalaMapa } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
 import { numero, poblacion } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
 import estilos from './Mapa.module.css'
 
-/** TopoJSON de Natural Earth 1:110m con ISO3 (lo genera scripts/preparar_mapa.py). */
-const URL_MAPA = `${import.meta.env.BASE_URL}data/mundo-110m.json`
+/** TopoJSON de Natural Earth 1:50m con ISO3 (lo genera scripts/preparar_mapa.py). */
+const URL_MAPA = `${import.meta.env.BASE_URL}data/mundo-50m.json`
+
+/**
+ * Mapa base de OpenStreetMap: no pide clave ni registro, solo la atribución visible.
+ * El color se ajusta con un filtro CSS (gris en claro, invertido en oscuro) en Mapa.module.css.
+ */
+const TESELAS = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+const ATRIBUCION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+
+/** A partir de este zoom (país/región) los colores se aclaran para leer ciudades y calles. */
+const ZOOM_CERCA = 5
+
+/** Vista inicial: todo el mundo habitado, sin la Antártida. */
+const MUNDO: LatLngBoundsExpression = [
+  [-50, -165],
+  [75, 175],
+]
 
 /** Escala secuencial de 5 clases: <1, 1–3, 3–6, 6–10, ≥10 t/hab. */
 const escala = scaleThreshold<number, string>().domain([...cortesMapa]).range([...escalaMapa])
 
 const ETIQUETAS_RANGO = ['< 1', '1–3', '3–6', '6–10', '≥ 10']
 
-interface Hover {
-  x: number
-  y: number
-  registro: RegistroPais | undefined
-  nombre: string
+type Pais = Feature<Geometry, { iso: string | null; name: string }>
+
+/**
+ * Los países que cruzan la línea de cambio de fecha (Rusia, Fiyi) traen puntos en
+ * −180° y +180° seguidos; en un mapa plano eso se dibuja como una franja de lado a
+ * lado. Se "desenrolla" cada anillo para que la longitud nunca salte más de 180°.
+ */
+function desenrollar(anillo: number[][]): number[][] {
+  let anterior: number | null = null
+  return anillo.map(([lon, lat]) => {
+    let x = lon
+    if (anterior !== null) {
+      while (x - anterior > 180) x -= 360
+      while (x - anterior < -180) x += 360
+    }
+    anterior = x
+    return [x, lat]
+  })
+}
+
+function corregirAntimeridiano(f: Pais): Pais {
+  const g = f.geometry
+  if (g.type === 'Polygon') {
+    return { ...f, geometry: { ...g, coordinates: g.coordinates.map(desenrollar) } }
+  }
+  if (g.type === 'MultiPolygon') {
+    return { ...f, geometry: { ...g, coordinates: g.coordinates.map((p) => p.map(desenrollar)) } }
+  }
+  return f
+}
+
+function escaparHtml(texto: string): string {
+  return texto.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
 
 /**
- * Mapa coroplético de CO₂ per cápita del año filtrado. Mapa: distribución geográfica.
+ * La rueda del mouse solo hace zoom después de dar clic en el mapa;
+ * así hacer scroll en la página no se "atora" encima del mapa.
+ */
+function ZoomConRueda() {
+  const mapa = useMap()
+  useEffect(() => {
+    const activar = () => mapa.scrollWheelZoom.enable()
+    const desactivar = () => mapa.scrollWheelZoom.disable()
+    mapa.on('click focus', activar)
+    mapa.on('blur mouseout', desactivar)
+    return () => {
+      mapa.off('click focus', activar)
+      mapa.off('blur mouseout', desactivar)
+    }
+  }, [mapa])
+  return null
+}
+
+/** Avisa al mapa si está lejos (mundo) o cerca (región), para ajustar la transparencia. */
+function SeguirZoom({ alCambiar }: { alCambiar: (cerca: boolean) => void }) {
+  const mapa = useMapEvents({ zoomend: () => alCambiar(mapa.getZoom() >= ZOOM_CERCA) })
+  return null
+}
+
+/** Botón para volver a la vista de todo el mundo. */
+function BotonMundo() {
+  const mapa = useMap()
+  const ref = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (ref.current) DomEvent.disableClickPropagation(ref.current)
+  }, [])
+  return (
+    <button ref={ref} type="button" className={estilos.botonMundo} onClick={() => mapa.fitBounds(MUNDO)}>
+      Ver mundo
+    </button>
+  )
+}
+
+/**
+ * Mapa coroplético de CO₂ per cápita del año filtrado, sobre un mapa base con zoom
+ * (Leaflet + OpenStreetMap). Al acercarse, los colores se aclaran para ver ciudades.
  * Clic en un país para filtrarlo (otro clic lo quita).
  */
 export function MapaCO2({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais, setContinente, setPais } = useFiltros()
-  const [hover, setHover] = useState<Hover | null>(null)
+  const tema = useTema()
+  const [cerca, setCerca] = useState(false)
+  const [geo, setGeo] = useState<FeatureCollection<Geometry, Pais['properties']> | null>(null)
+
+  useEffect(() => {
+    let activo = true
+    fetch(URL_MAPA)
+      .then((r) => r.json() as Promise<Topology<{ countries: GeometryCollection<Pais['properties']> }>>)
+      .then((topo) => {
+        if (!activo) return
+        const fc = feature(topo, topo.objects.countries)
+        setGeo({ ...fc, features: fc.features.map(corregirAntimeridiano) })
+      })
+      .catch(() => {
+        if (activo) setGeo({ type: 'FeatureCollection', features: [] })
+      })
+    return () => {
+      activo = false
+    }
+  }, [])
 
   const porIso = useMemo(
     () => new Map(paises.filter((p) => p.anio === anio).map((p) => [p.iso, p])),
@@ -50,65 +159,69 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     setPais(iso)
   }
 
-  function alMover(e: MouseEvent<SVGPathElement>, iso: string | null, nombre: string) {
-    const caja = e.currentTarget.ownerSVGElement?.parentElement?.getBoundingClientRect()
-    if (!caja) return
-    setHover({
-      x: e.clientX - caja.left,
-      y: e.clientY - caja.top,
-      registro: iso ? porIso.get(iso) : undefined,
-      nombre,
-    })
+  function estilo(f?: Pais): PathOptions {
+    const iso = f?.properties.iso ?? null
+    const registro = iso ? porIso.get(iso) : undefined
+    const valor = registro?.co2_pc
+    const fuera = continente !== 'Todos' && registro?.continente !== continente
+    const elegido = iso != null && iso === pais
+    return {
+      fillColor: valor != null ? escala(valor) : colores.sinDato,
+      // Lejos: color fuerte. Cerca: más transparente para que se lean ciudades y calles.
+      fillOpacity: fuera ? 0.12 : cerca ? 0.35 : 0.8,
+      color: elegido ? colores.texto : colores.contorno,
+      weight: elegido ? 2.5 : 0.6,
+    }
   }
 
   return (
-    <Tarjeta titulo="Mapa mundial de CO₂ per cápita" subtitulo="Haz clic en un país para filtrarlo globalmente" className={className}>
-      <div className={estilos.contenedor} onMouseLeave={() => setHover(null)}>
-        <ComposableMap
-          projection="geoEqualEarth"
-          projectionConfig={{ scale: 165, center: [10, 8] }}
-          width={860}
-          height={360}
-          className={estilos.svg}
+    <Tarjeta
+      titulo="Mapa mundial de CO₂ per cápita"
+      subtitulo="Clic en un país para filtrar · clic en el mapa y rueda (o + / −) para acercarte hasta las ciudades"
+      className={className}
+    >
+      <div className={estilos.contenedor}>
+        <MapContainer
+          bounds={MUNDO}
+          minZoom={0}
+          maxZoom={12}
+          maxBounds={[
+            [-75, -200],
+            [85, 200],
+          ]}
+          maxBoundsViscosity={1}
+          scrollWheelZoom={false}
+          worldCopyJump={false}
+          className={estilos.mapa}
         >
-          <Sphere id="oceano" fill={colores.oceano} stroke="none" />
-          <Geographies geography={URL_MAPA}>
-            {({ geographies }) =>
-              geographies.map((geo) => {
-                const iso = (geo.properties?.iso as string | null) ?? null
-                const nombre = (geo.properties?.name as string) ?? ''
+          <TileLayer url={TESELAS} attribution={ATRIBUCION} maxZoom={19} />
+          {geo && (
+            <GeoJSON
+              // Se vuelve a crear al cambiar filtros para repintar colores y textos
+              key={`${anio}-${continente}-${pais}-${tema}-${cerca}`}
+              data={geo}
+              style={estilo}
+              onEachFeature={(f: Pais, capa) => {
+                const iso = f.properties.iso
                 const registro = iso ? porIso.get(iso) : undefined
-                const valor = registro?.co2_pc
-                const fuera = continente !== 'Todos' && registro?.continente !== continente
-                const elegido = iso != null && iso === pais
-                return (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    className={estilos.pais}
-                    fill={valor != null ? escala(valor) : colores.sinDato}
-                    fillOpacity={fuera ? 0.2 : 1}
-                    // Blanco en claro; gris azulado en oscuro para que se vea la silueta
-                    stroke={elegido ? colores.texto : colores.contorno}
-                    strokeWidth={elegido ? 2 : 0.5}
-                    onClick={() => alClic(iso)}
-                    onMouseMove={(e) => alMover(e, iso, nombre)}
-                  />
-                )
-              })
-            }
-          </Geographies>
-        </ComposableMap>
-
-        {hover && (
-          <div className={estilos.tooltip} style={{ left: hover.x, top: hover.y }}>
-            <strong>{hover.registro?.pais ?? hover.nombre}</strong>
-            <br />
-            {hover.registro?.co2_pc != null
-              ? `${numero(hover.registro.co2_pc, 1)} t/hab · Población ${poblacion(hover.registro.poblacion)}`
-              : 'Sin dato registrado'}
-          </div>
-        )}
+                const nombre = escaparHtml(registro?.pais ?? f.properties.name)
+                const detalle =
+                  registro?.co2_pc != null
+                    ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
+                    : 'Sin dato registrado'
+                capa.bindTooltip(`<strong>${nombre}</strong><br/>${detalle}`, {
+                  sticky: true,
+                  className: 'tooltip-co2',
+                })
+                capa.on('click', () => alClic(iso))
+              }}
+            />
+          )}
+          <SeguirZoom alCambiar={setCerca} />
+          <ZoomConRueda />
+          <BotonMundo />
+        </MapContainer>
+        {!geo && <p className={estilos.cargando}>Cargando mapa…</p>}
       </div>
 
       <div className={estilos.leyenda}>
@@ -128,4 +241,4 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
       </div>
     </Tarjeta>
   )
-}
+}

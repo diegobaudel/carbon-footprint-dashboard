@@ -3,6 +3,7 @@ import { useDatos } from './hooks/useDatos.ts'
 import { useAlcance } from './hooks/useAlcance.ts'
 import { Header } from './components/layout/Header.tsx'
 import { NotasMetodologia } from './components/layout/NotasMetodologia.tsx'
+import { Seccion } from './components/layout/Seccion.tsx'
 import { KpiPrincipal } from './components/kpis/KpiPrincipal.tsx'
 import { Top5Emisores } from './components/kpis/Top5Emisores.tsx'
 import { VariacionParis } from './components/kpis/VariacionParis.tsx'
@@ -63,6 +64,7 @@ export default function App() {
       </div>
 
       <main className={estilos.dashboard}>
+        <Seccion numero="01" titulo="Panorama" texto="Cuánto CO₂ emite el mundo y hacia dónde va" />
         <KpiPrincipal alcance={alcance} className={estilos.kpiPrincipal} />
         <div className={estilos.kpisSecundarios}>
           <Top5Emisores paises={paises} />
@@ -70,12 +72,15 @@ export default function App() {
           <MayorReduccion paises={paises} />
         </div>
 
+        <Seccion numero="02" titulo="¿Dónde se emite?" texto="Emisiones por persona en el mapa y los países que más emiten" />
         <MapaCO2 paises={paises} className={estilos.mapa} />
         <RankingPaises paises={paises} className={estilos.ranking} />
 
+        <Seccion numero="03" titulo="¿Cómo cambió y por qué?" texto="Tendencia por continente y su relación con la riqueza" />
         <LineasContinente agregados={agregados} className={estilos.lineas} />
         <DispersionPib paises={paises} className={estilos.dispersion} />
 
+        <Seccion numero="04" titulo="¿De dónde vienen las emisiones?" texto="Composición por fuente en los mayores emisores" />
         <BarrasFuente paises={paises} className={estilos.fuentes} />
         
         {/* Si se activa el botón flotante, muestra el componente de notas en formato modal/panel */}

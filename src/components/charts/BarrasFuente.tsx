@@ -1,5 +1,6 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
+import { useEsCelular } from '../../hooks/useMedia.ts'
 import { colores, coloresFuente } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
@@ -23,6 +24,9 @@ const FUENTES = [
  */
 export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
+  const esCelular = useEsCelular()
+  // En celular los ejes van con letra más grande
+  const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
 
   let seleccion = topPaises(paises, anio, continente, 'co2', 5)
   if (pais !== 'Todos' && !seleccion.some((p) => p.iso === pais)) {
@@ -47,7 +51,7 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
             <CartesianGrid horizontal={false} stroke={colores.borde} />
             <XAxis
               type="number"
-              tick={ticks}
+              tick={ejeTicks}
               axisLine={lineaEje}
               tickLine={false}
               tickFormatter={(v) => numero(Number(v), 0)}
@@ -56,7 +60,7 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
               type="category"
               dataKey="nombre"
               width={110}
-              tick={ticks}
+              tick={ejeTicks}
               axisLine={lineaEje}
               tickLine={false}
               interval={0}

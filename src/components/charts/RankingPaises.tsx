@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
+import { useEsCelular } from '../../hooks/useMedia.ts'
 import { colores } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
@@ -20,6 +21,9 @@ const POBLACION_MINIMA_PC = 1_000_000
  */
 export function RankingPaises({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
+  const esCelular = useEsCelular()
+  // En celular los ejes van con letra más grande
+  const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
   const [modo, setModo] = useState<Modo>('total')
 
   const campo = modo === 'total' ? 'co2' : 'co2_pc'
@@ -53,7 +57,7 @@ export function RankingPaises({ paises, className }: { paises: RegistroPais[]; c
               type="category"
               dataKey="nombre"
               width={104}
-              tick={ticks}
+              tick={ejeTicks}
               axisLine={lineaEje}
               tickLine={false}
               interval={0}

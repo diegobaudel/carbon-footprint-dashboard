@@ -30,29 +30,33 @@
   padding: var(--gutter) var(--margen) var(--margen);
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: 200px 380px 300px 240px;
+  grid-auto-rows: auto;
   gap: var(--gutter);
 }
 
+/* Mismas filas del wireframe; cada una lleva antes su título de sección (01–04).
+   El alto va en cada tarjeta porque las filas de título son de alto automático. */
+
 /* Fila 1 · KPIs: principal en 4 columnas, los 3 secundarios en las 8 restantes */
-.kpiPrincipal { grid-column: span 4; }
+.kpiPrincipal { grid-column: span 4; height: 200px; }
 .kpisSecundarios {
   grid-column: span 8;
+  height: 200px;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--gutter);
 }
 
-/* Fila 2 · mapa (8) + ranking (4) */
-.mapa { grid-column: span 8; }
-.ranking { grid-column: span 4; }
+/* Fila 2 · mapa (8) + ranking (4): más alta para que el mapa sea el protagonista */
+.mapa { grid-column: span 8; height: 460px; }
+.ranking { grid-column: span 4; height: 460px; }
 
 /* Fila 3 · líneas (6) + dispersión (6) */
-.lineas { grid-column: span 6; }
-.dispersion { grid-column: span 6; }
+.lineas { grid-column: span 6; height: 320px; }
+.dispersion { grid-column: span 6; height: 320px; }
 
 /* Fila 4 · fuentes a lo ancho (las notas se movieron al modal de Metodología) */
-.fuentes { grid-column: 1 / -1; }
+.fuentes { grid-column: 1 / -1; height: 260px; }
 .notas { grid-column: span 4; }
 
 .estado {
@@ -141,18 +145,16 @@
 @media (max-width: 1100px) {
   .dashboard {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: none;
-    grid-auto-rows: auto;
   }
 
-  .kpiPrincipal { grid-column: 1 / -1; min-height: 200px; }
-  .kpisSecundarios { grid-column: 1 / -1; }
+  .kpiPrincipal { grid-column: 1 / -1; height: auto; min-height: 200px; }
+  .kpisSecundarios { grid-column: 1 / -1; height: auto; }
   .kpisSecundarios > * { min-height: 200px; }
   .mapa { grid-column: 1 / -1; height: 400px; }
   .ranking { grid-column: 1 / -1; height: 380px; }
   .lineas,
   .dispersion { grid-column: 1 / -1; height: 320px; }
-  .fuentes { grid-column: 1 / -1; height: 300px; }
+  .fuentes { grid-column: 1 / -1; height: 320px; }
 }
 
 /* ---------- Celular (≤ 720 px): una columna en orden de lectura ---------- */
@@ -164,7 +166,11 @@
 
   .kpisSecundarios { grid-template-columns: 1fr; }
   .kpisSecundarios > * { min-height: 170px; }
-  .mapa { height: 330px; }
+  .mapa { height: 380px; }
+  .ranking { height: 420px; }
+  .lineas,
+  .dispersion { height: 340px; }
+  .fuentes { height: 360px; }
 
   /* En celular la etiqueta del proyecto no se queda fija (ahorra alto de pantalla);
      display: contents deja que el encabezado compacto se fije contra toda la página */

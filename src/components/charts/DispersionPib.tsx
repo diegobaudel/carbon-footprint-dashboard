@@ -1,5 +1,6 @@
 import { CartesianGrid, Cell, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
+import { useEsCelular } from '../../hooks/useMedia.ts'
 import { colores } from '../../styles/palette.ts'
 import { ANIO_MAX_PIB, type RegistroPais } from '../../types.ts'
 import { delAnio, delContinente } from '../../utils/calculos.ts'
@@ -43,6 +44,9 @@ function TooltipPunto({ active, payload }: { active?: boolean; payload?: { paylo
  */
 export function DispersionPib({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
+  const esCelular = useEsCelular()
+  // En celular los ejes van con letra más grande
+  const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
   const anioPib = Math.min(anio, ANIO_MAX_PIB)
 
   const datos: Punto[] = delContinente(delAnio(paises, anioPib), continente)
@@ -71,7 +75,7 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
               domain={[500, 170000]}
               ticks={MARCAS_PIB}
               allowDataOverflow
-              tick={ticks}
+              tick={ejeTicks}
               axisLine={lineaEje}
               tickLine={false}
               tickFormatter={(v) => dolares(Number(v))}
@@ -85,7 +89,7 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
               domain={[0.02, 60]}
               ticks={MARCAS_CO2}
               allowDataOverflow
-              tick={ticks}
+              tick={ejeTicks}
               axisLine={lineaEje}
               tickLine={false}
               width={40}

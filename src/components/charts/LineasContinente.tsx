@@ -1,7 +1,9 @@
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
+  ReferenceDot,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -11,6 +13,7 @@ import {
   useYAxisScale,
 } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
+import { useEsCelular } from '../../hooks/useMedia.ts'
 import { colores, tonosSeries } from '../../styles/palette.ts'
 import { CONTINENTES, type RegistroAgregado } from '../../types.ts'
 import { numero } from '../../utils/formato.ts'
@@ -70,7 +73,10 @@ export function LineasContinente({
   agregados: RegistroAgregado[]
   className?: string
 }) {
-  const { continente } = useFiltros()
+  const { anio, continente } = useFiltros()
+  const esCelular = useEsCelular()
+  // En celular los ejes van con letra más grande
+  const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
 
   // De filas (continente, año) a una fila por año con una columna por continente
   const porAnio = new Map<number, Record<string, number>>()
@@ -82,6 +88,7 @@ export function LineasContinente({
   }
   const datos = [...porAnio.values()].sort((a, b) => a.anio - b.anio)
   const final = datos[datos.length - 1]
+  const filaAnio = datos.find((d) => d.anio === anio)
   const etiquetas: Etiqueta[] = final
     ? CONTINENTES.filter((c) => final[c] != null).map((c) => ({
         nombre: c,
@@ -95,11 +102,12 @@ export function LineasContinente({
     <Tarjeta titulo="Emisiones por continente, 2010–2023" subtitulo="Mt CO₂" className={className}>
       <div className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={datos} margin={{ top: 16, right: 92, bottom: 0, left: 0 }}>
+          {/* En celular las etiquetas al final de cada línea se cambian por una leyenda abajo */}
+          <LineChart data={datos} margin={{ top: 16, right: esCelular ? 12 : 92, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={colores.borde} />
-            <XAxis dataKey="anio" tick={ticks} axisLine={lineaEje} tickLine={false} />
+            <XAxis dataKey="anio" tick={ejeTicks} axisLine={lineaEje} tickLine={false} />
             <YAxis
-              tick={ticks}
+              tick={ejeTicks}
               axisLine={false}
               tickLine={false}
               width={52}
@@ -128,7 +136,32 @@ export function LineasContinente({
                 />
               )
             })}
-            {final && <EtiquetasFinales anio={final.anio} etiquetas={etiquetas} />}
+            {/* Año elegido en el filtro: línea y un punto por continente */}
+            <ReferenceLine x={anio} stroke={colores.emision} strokeWidth={1.5} />
+            {filaAnio &&
+              CONTINENTES.map((c, i) =>
+                filaAnio[c] != null ? (
+                  <ReferenceDot
+                    key={c}
+                    x={anio}
+                    y={filaAnio[c]}
+                    r={3.5}
+                    fill={tonosSeries[i]}
+                    stroke={colores.tarjeta}
+                    ifOverflow="visible"
+                  />
+                ) : null,
+              )}
+            {final && !esCelular && <EtiquetasFinales anio={final.anio} etiquetas={etiquetas} />}
+            {esCelular && (
+              <Legend
+                verticalAlign="bottom"
+                iconType="plainline"
+                iconSize={14}
+                wrapperStyle={{ fontSize: 12, paddingTop: 6 }}
+                formatter={(nombre) => <span style={{ color: colores.textoSec }}>{nombre}</span>}
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>
