@@ -16,6 +16,7 @@
 }
 
 .titulo {
+  font-family: var(--fuente-titulos);
   font-size: var(--texto-titulo);
   font-weight: 700;
   color: var(--color-texto-invertido);
@@ -178,4 +179,87 @@
 
 .botonLimpiar:hover {
   background-color: var(--color-control-hover);
+}
+
+/* ---------- Tablet: los filtros bajan debajo del título ---------- */
+@media (max-width: 1100px) {
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .filtros {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Celular: encabezado compacto y fijo (título + filtros + franja) ---------- */
+@media (max-width: 720px) {
+  .fijo {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+
+  .header {
+    padding: 10px var(--margen);
+    gap: 8px;
+  }
+
+  .titulo {
+    font-size: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .subtitulo {
+    display: none;
+  }
+
+  .filtros {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* Año en una sola fila: ‹ 2023 › y el deslizador al lado */
+  .filtroAnio {
+    grid-column: 1 / -1;
+    width: auto;
+    grid-template-columns: auto 1fr;
+    column-gap: 12px;
+  }
+
+  .filtroAnio > span:first-child {
+    display: none;
+  }
+
+  .deslizador {
+    grid-column: auto;
+  }
+
+  .filtro {
+    gap: 2px;
+    font-size: 11px;
+  }
+
+  .select {
+    height: 30px;
+  }
+
+  .extremos {
+    display: none;
+  }
+
+  .select {
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .indicador {
+    padding: 6px var(--margen);
+  }
 }

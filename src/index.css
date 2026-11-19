@@ -17,6 +17,8 @@ body {
   font-size: var(--texto-sec);
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
+  /* Dígitos del mismo ancho: las cifras se alinean y no "brincan" al cambiar el año */
+  font-variant-numeric: tabular-nums;
   transition: background-color 0.2s, color 0.2s;
 }
 
