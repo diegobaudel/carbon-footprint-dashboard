@@ -59,10 +59,3 @@
   padding: 16px 0;
   color: var(--color-texto-sec);
 }
-
-@media (max-width: 720px) {
-  .tabla th:last-child,
-  .tabla td:last-child {
-    display: none;
-  }
-}

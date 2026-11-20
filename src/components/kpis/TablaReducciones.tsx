@@ -10,29 +10,9 @@ import estilos from './TablaReducciones.module.css'
 const UMBRAL_MT = 10
 const FILAS = 15
 
-/** Línea mínima con la serie 2010–2023 de un país (sin ejes: solo la forma de la tendencia). */
-function Tendencia({ serie, baja }: { serie: (number | null)[]; baja: boolean }) {
-  const valores = serie.filter((v): v is number => v != null)
-  if (valores.length < 2) return null
-  const min = Math.min(...valores)
-  const max = Math.max(...valores)
-  const ancho = 96
-  const alto = 24
-  const puntos = serie
-    .map((v, i) => (v == null ? null : `${(i / (serie.length - 1)) * ancho},${alto - ((v - min) / (max - min || 1)) * (alto - 4) - 2}`))
-    .filter(Boolean)
-    .join(' ')
-  return (
-    <svg width={ancho} height={alto} viewBox={`0 0 ${ancho} ${alto}`} aria-hidden="true">
-      <polyline points={puntos} fill="none" stroke={baja ? 'var(--color-mejora)' : 'var(--color-emision)'} strokeWidth={1.8} />
-    </svg>
-  )
-}
-
 /**
  * Tabla de los países con mayor reducción relativa de CO₂ desde 2010 (los que emitían
- * más de 10 Mt en 2010), con su tendencia año por año: la vista completa sin tener que
- * mover el deslizador año con año.
+ * más de 10 Mt en 2010): la vista completa sin tener que mover el deslizador año con año.
  */
 export function TablaReducciones({ paises, onCerrar }: { paises: RegistroPais[]; onCerrar: () => void }) {
   const { anio, continente } = useFiltros()
@@ -58,7 +38,6 @@ export function TablaReducciones({ paises, onCerrar }: { paises: RegistroPais[];
         inicio: inicio.co2,
         final: final.co2,
         cambio: cambioPct(inicio.co2, final.co2) as number,
-        serie: lista.map((p) => p.co2),
       })
     }
     return resultado.sort((a, b) => a.cambio - b.cambio).slice(0, FILAS)
@@ -80,9 +59,6 @@ export function TablaReducciones({ paises, onCerrar }: { paises: RegistroPais[];
             <th className={estilos.num}>{ANIO_MIN} (Mt)</th>
             <th className={estilos.num}>{fin} (Mt)</th>
             <th className={estilos.num}>Cambio</th>
-            <th>
-              Tendencia {ANIO_MIN}–{ANIO_MAX}
-            </th>
           </tr>
         </thead>
         <tbody>
@@ -99,9 +75,6 @@ export function TablaReducciones({ paises, onCerrar }: { paises: RegistroPais[];
               <td className={estilos.num}>{numero(f.inicio, f.inicio < 100 ? 1 : 0)}</td>
               <td className={estilos.num}>{numero(f.final, f.final < 100 ? 1 : 0)}</td>
               <td className={`${estilos.num} ${f.cambio < 0 ? estilos.baja : estilos.sube}`}>{cambioConFlecha(f.cambio)}</td>
-              <td>
-                <Tendencia serie={f.serie} baja={f.cambio < 0} />
-              </td>
             </tr>
           ))}
         </tbody>

@@ -95,6 +95,8 @@ interface Props {
   paises: RegistroPais[]
   /** Cambia cuando el usuario pide "Restablecer vista". */
   reinicio: number
+  /** false cuando está oculto detrás del mapa plano: deja de dibujar (sigue montado). */
+  activo?: boolean
 }
 
 /**
@@ -103,7 +105,7 @@ interface Props {
  * aparece OpenStreetMap con ciudades y calles. Clic en un país: gira hacia él, muestra su
  * ficha y aplica el filtro de país en todo el dashboard.
  */
-export default function GloboCO2({ paises, reinicio }: Props) {
+export default function GloboCO2({ paises, reinicio, activo = true }: Props) {
   const { anio, continente, pais: paisFiltro, setContinente, setPais, reproduciendo } = useFiltros()
   const tema = useTema()
   // Clic en el globo: el país se marca, la ficha aparece y la cámara gira al instante
@@ -115,6 +117,8 @@ export default function GloboCO2({ paises, reinicio }: Props) {
   const pendiente = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   useEffect(() => () => clearTimeout(pendiente.current), [])
   const contenedor = useRef<HTMLDivElement>(null)
+  const activoRef = useRef(activo)
+  const revisarPausa = useRef<(() => void) | null>(null)
   const globo = useRef<GlobeInstance | null>(null)
   const [geo, setGeo] = useState<Pais[] | null>(null)
   // Países pequeños sin forma en el mapa 1:110m: se dibujan como columnas
@@ -275,12 +279,14 @@ export default function GloboCO2({ paises, reinicio }: Props) {
 
     // Se pausa el dibujo si el globo no está en pantalla, si la pestaña está oculta o
     // mientras se hace scroll (el navegador deja el scroll fluido y el globo se queda
-    // quieto como imagen; 150 ms después de soltar vuelve a girar)
+    // quieto como imagen; 400 ms después de soltar vuelve a girar: con la rueda del mouse
+    // cada "clic" llega con ~150 ms de pausa y así no se reanuda a medio scroll)
     let visible = true
     let desplazando = false
+    // activoRef: el globo puede estar montado pero oculto (vista Mapa) y no debe dibujar
     let finScroll: ReturnType<typeof setTimeout> | undefined
     const actualizarPausa = () => {
-      if (visible && !desplazando && !document.hidden) g.resumeAnimation()
+      if (visible && activoRef.current && !desplazando && !document.hidden) g.resumeAnimation()
       else g.pauseAnimation()
     }
     const alHacerScroll = () => {
@@ -292,9 +298,10 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       finScroll = setTimeout(() => {
         desplazando = false
         actualizarPausa()
-      }, 150)
+      }, 400)
     }
     window.addEventListener('scroll', alHacerScroll, { passive: true })
+    revisarPausa.current = actualizarPausa
     const vista = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting
       actualizarPausa()
@@ -317,6 +324,12 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       globo.current = null
     }
   }, [])
+
+  // Oculto detrás del mapa plano: se pausa; al volver a Globo 3D sigue donde se quedó
+  useEffect(() => {
+    activoRef.current = activo
+    revisarPausa.current?.()
+  }, [activo])
 
   // Teselas y atmósfera según el tema
   useEffect(() => {

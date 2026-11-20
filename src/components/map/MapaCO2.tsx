@@ -131,7 +131,16 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
   const [cerca, setCerca] = useState(false)
   const [conWebGL] = useState(soportaWebGL)
   // El globo 3D es la vista inicial; sin WebGL se queda el mapa plano
-  const [vista, setVista] = useState<Vista>(() => (conWebGL ? 'globo' : 'mapa'))
+  const [vista, setVistaEstado] = useState<Vista>(() => (conWebGL ? 'globo' : 'mapa'))
+  // Cada vista se monta la primera vez que se usa y después se queda montada (oculta):
+  // cambiar entre Globo 3D y Mapa es instantáneo. El mapa plano se empieza a preparar
+  // en cuanto el cursor pasa sobre el botón "Mapa".
+  const [montado, setMontado] = useState(() => ({ globo: conWebGL, mapa: !conWebGL }))
+  const preparar = (v: Vista) => setMontado((m) => (m[v] ? m : { ...m, [v]: true }))
+  const setVista = (v: Vista) => {
+    preparar(v)
+    setVistaEstado(v)
+  }
   const [reinicioGlobo, setReinicioGlobo] = useState(0)
   const mapaRef = useRef<MapaLeaflet | null>(null)
   // El mapa de Leaflet se crea después del primer render: se avisa cuando ya existe
@@ -150,6 +159,8 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
           type="button"
           className={vista === v ? estilos.vistaActiva : ''}
           onClick={() => setVista(v)}
+          onPointerEnter={() => preparar(v)}
+          onFocus={() => preparar(v)}
         >
           {v === 'mapa' ? 'Mapa' : 'Globo 3D'}
         </button>
@@ -262,6 +273,11 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     return estiloIso(f?.properties.iso ?? null)
   }
 
+  // El mapa se dibuja en canvas, que no entiende var(--…): los colores se pasan ya resueltos.
+  // Se leen una vez por render (el tema vuelve a crear la capa, ver key={tema})
+  const variables = getComputedStyle(document.documentElement)
+  const real = (c: string) => (c.startsWith('var(') ? variables.getPropertyValue(c.slice(4, -1)).trim() : c)
+
   function estiloIso(iso: string | null): PathOptions {
     const registro = iso ? porIso.get(iso) : undefined
     const valor = registro?.co2_pc
@@ -275,9 +291,9 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
           ? base * 0.6
           : base
     return {
-      fillColor: valor != null ? escala(valor) : colores.sinDato,
+      fillColor: valor != null ? escala(valor) : real(colores.sinDato),
       fillOpacity: opacidad,
-      color: elegido ? colores.texto : colores.contorno,
+      color: real(elegido ? colores.texto : colores.contorno),
       weight: elegido ? 3 : 0.6,
     }
   }
@@ -325,79 +341,87 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
       }}
     >
       <div ref={zona} className={estilos.contenedor}>
-        {vista === 'globo' ? (
-          <Suspense fallback={<p className={estilos.cargando}>Cargando globo…</p>}>
-            <GloboCO2 paises={paises} reinicio={reinicioGlobo} />
-          </Suspense>
-        ) : (
-          <MapContainer
-            ref={(m) => {
-              mapaRef.current = m
-              setMapaListo(m !== null)
-            }}
-            bounds={MUNDO}
-            minZoom={0}
-            maxZoom={12}
-            maxBounds={[
-              [-75, -200],
-              [85, 200],
-            ]}
-            maxBoundsViscosity={1}
-            scrollWheelZoom={false}
-            worldCopyJump={false}
-            className={estilos.mapa}
-          >
-            <TileLayer url={TESELAS} attribution={ATRIBUCION} maxZoom={19} />
-            {geo && (
-              <GeoJSON
-                // Solo se vuelve a crear al cambiar de tema; lo demás se repinta con setStyle
-                key={tema}
-                ref={capaGeo}
-                data={geo}
-                style={(f) => actual.current.estilo(f as Pais)}
-                onEachFeature={(f: Pais, capa) => {
-                  const iso = f.properties.iso
-                  // El texto se arma al pasar el cursor, con los datos del año actual
-                  capa.bindTooltip(
-                    () => {
-                      const registro = iso ? actual.current.porIso.get(iso) : undefined
-                      const nombre = escaparHtml(registro?.pais ?? f.properties.name)
-                      const detalle =
-                        registro?.co2_pc != null
-                          ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
-                          : 'Sin dato registrado'
-                      return `<strong>${nombre}</strong><br/>${detalle}`
-                    },
-                    { sticky: true, className: 'tooltip-co2' },
-                  )
-                  capa.on('click', () => actual.current.alClic(iso))
-                }}
-              />
-            )}
-            {/* Países pequeños sin forma en el mapa: un círculo con el mismo color y clic */}
-            {puntosSinForma.map((p) => {
-              const registro = porIso.get(p.iso)
-              return (
-                <CircleMarker
-                  key={`${p.iso}-${anio}-${pais}-${continente}-${cerca}`}
-                  center={[p.lat, p.lng]}
-                  radius={p.iso === pais ? 9 : 6}
-                  pathOptions={{ ...estiloIso(p.iso), weight: p.iso === pais ? 3 : 1 }}
-                  eventHandlers={{ click: () => alClic(p.iso) }}
-                >
-                  <Tooltip sticky className="tooltip-co2">
-                    <strong>{registro?.pais ?? p.iso}</strong>
-                    <br />
-                    {registro?.co2_pc != null
-                      ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
-                      : 'Sin dato registrado'}
-                  </Tooltip>
-                </CircleMarker>
-              )
-            })}
-            <SeguirZoom alCambiar={setCerca} />
-            <ZoomConRueda />
-          </MapContainer>
+        {montado.globo && (
+          <div className={`${estilos.capa} ${vista === 'globo' ? '' : estilos.capaOculta}`} aria-hidden={vista !== 'globo'}>
+            <Suspense fallback={<p className={estilos.cargando}>Cargando globo…</p>}>
+              <GloboCO2 paises={paises} reinicio={reinicioGlobo} activo={vista === 'globo'} />
+            </Suspense>
+          </div>
+        )}
+        {montado.mapa && (
+          <div className={`${estilos.capa} ${vista === 'mapa' ? '' : estilos.capaOculta}`} aria-hidden={vista !== 'mapa'}>
+            <MapContainer
+              ref={(m) => {
+                mapaRef.current = m
+                setMapaListo(m !== null)
+              }}
+              bounds={MUNDO}
+              // Canvas en lugar de SVG: 240 países a escala 1:50m se dibujan mucho más rápido
+              // (el cambio de Globo 3D a Mapa ya no tarda) y el scroll no arrastra miles de nodos
+              preferCanvas
+              minZoom={0}
+              maxZoom={12}
+              maxBounds={[
+                [-75, -200],
+                [85, 200],
+              ]}
+              maxBoundsViscosity={1}
+              scrollWheelZoom={false}
+              worldCopyJump={false}
+              className={estilos.mapa}
+            >
+              <TileLayer url={TESELAS} attribution={ATRIBUCION} maxZoom={19} />
+              {geo && (
+                <GeoJSON
+                  // Solo se vuelve a crear al cambiar de tema; lo demás se repinta con setStyle
+                  key={tema}
+                  ref={capaGeo}
+                  data={geo}
+                  style={(f) => actual.current.estilo(f as Pais)}
+                  onEachFeature={(f: Pais, capa) => {
+                    const iso = f.properties.iso
+                    // El texto se arma al pasar el cursor, con los datos del año actual
+                    capa.bindTooltip(
+                      () => {
+                        const registro = iso ? actual.current.porIso.get(iso) : undefined
+                        const nombre = escaparHtml(registro?.pais ?? f.properties.name)
+                        const detalle =
+                          registro?.co2_pc != null
+                            ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
+                            : 'Sin dato registrado'
+                        return `<strong>${nombre}</strong><br/>${detalle}`
+                      },
+                      { sticky: true, className: 'tooltip-co2' },
+                    )
+                    capa.on('click', () => actual.current.alClic(iso))
+                  }}
+                />
+              )}
+              {/* Países pequeños sin forma en el mapa: un círculo con el mismo color y clic */}
+              {puntosSinForma.map((p) => {
+                const registro = porIso.get(p.iso)
+                return (
+                  <CircleMarker
+                    key={`${p.iso}-${anio}-${pais}-${continente}-${cerca}`}
+                    center={[p.lat, p.lng]}
+                    radius={p.iso === pais ? 9 : 6}
+                    pathOptions={{ ...estiloIso(p.iso), weight: p.iso === pais ? 3 : 1 }}
+                    eventHandlers={{ click: () => alClic(p.iso) }}
+                  >
+                    <Tooltip sticky className="tooltip-co2">
+                      <strong>{registro?.pais ?? p.iso}</strong>
+                      <br />
+                      {registro?.co2_pc != null
+                        ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
+                        : 'Sin dato registrado'}
+                    </Tooltip>
+                  </CircleMarker>
+                )
+              })}
+              <SeguirZoom alCambiar={setCerca} />
+              <ZoomConRueda />
+            </MapContainer>
+          </div>
         )}
         {vista === 'mapa' && !geo && <p className={estilos.cargando}>Cargando mapa…</p>}
         <button type="button" className={estilos.botonMundo} onClick={restablecerVista}>

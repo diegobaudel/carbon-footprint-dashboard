@@ -53,3 +53,57 @@
 .tooltip strong {
   font-size: var(--texto-sec);
 }
+
+/* Botones de zoom de la dispersión (arriba a la derecha del área de la gráfica) */
+.zoom {
+  position: absolute;
+  top: 0;
+  right: 12px;
+  z-index: 2;
+  display: inline-flex;
+  border: 1px solid var(--color-control-borde);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--color-tarjeta);
+}
+
+.zoom button {
+  min-width: 28px;
+  height: 26px;
+  padding: 0 8px;
+  border: 0;
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zoom button + button {
+  border-left: 1px solid var(--color-borde);
+}
+
+.zoom button:hover:not(:disabled) {
+  background: var(--color-control-hover);
+}
+
+.zoom button:disabled {
+  color: var(--color-texto-sec);
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Sin el contorno de foco al hacer clic o arrastrar con el mouse (con teclado sí se ve) */
+.grafica :global(.recharts-wrapper):focus:not(:focus-visible),
+.grafica :global(.recharts-surface):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Dispersión: cursor de cruz para indicar que se puede arrastrar para hacer zoom */
+.arrastrable :global(.recharts-surface) {
+  cursor: crosshair;
+}
+
+.arrastrable :global(.recharts-scatter-symbol) {
+  cursor: pointer;
+}
