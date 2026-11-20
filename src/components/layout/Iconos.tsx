@@ -40,3 +40,19 @@ export function IconoInfo({ tamano = 16 }: Props) {
     </svg>
   )
 }
+
+export function IconoPlay({ tamano = 16 }: Props) {
+  return (
+    <svg {...base(tamano)} fill="currentColor">
+      <path d="M8 5.5v13l10-6.5-10-6.5Z" />
+    </svg>
+  )
+}
+
+export function IconoPausa({ tamano = 16 }: Props) {
+  return (
+    <svg {...base(tamano)}>
+      <path d="M9 6v12M15 6v12" strokeWidth={2.6} />
+    </svg>
+  )
+}

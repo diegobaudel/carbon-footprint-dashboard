@@ -4,6 +4,7 @@ import { ANIO_MIN } from '../../types.ts'
 import { cambioPct } from '../../utils/calculos.ts'
 import { porcentaje } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
+import { NumeroAnimado } from '../layout/NumeroAnimado.tsx'
 import estilos from './Kpi.module.css'
 
 const ANIO_PARIS = 2015
@@ -40,11 +41,8 @@ export function VariacionParis({ alcance }: { alcance: Alcance }) {
               <p className={estilos.etiqueta}>
                 {inicio}–{fin}
               </p>
-              <p
-                key={`${alcance.etiqueta}-${fin}`}
-                className={`${estilos.valor} ${estilos.destello} ${cambio != null && cambio < 0 ? estilos.mejora : ''}`}
-              >
-                {porcentaje(cambio)}
+              <p className={`${estilos.valor} ${cambio != null && cambio < 0 ? estilos.mejora : ''}`}>
+                <NumeroAnimado valor={cambio} formato={porcentaje} />
               </p>
             </div>
           )

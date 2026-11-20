@@ -1,6 +1,7 @@
 import { CartesianGrid, Cell, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
 import { useEsCelular } from '../../hooks/useMedia.ts'
+import { DURACION_ENTRADA, useAnimacionEntrada } from '../../hooks/useMovimiento.ts'
 import { useSeleccionPais } from '../../hooks/useSeleccionPais.ts'
 import { colores } from '../../styles/palette.ts'
 import { ANIO_MAX_PIB, type RegistroPais } from '../../types.ts'
@@ -47,6 +48,8 @@ function TooltipPunto({ active, payload }: { active?: boolean; payload?: { paylo
 export function DispersionPib({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
   const esCelular = useEsCelular()
+  // La gráfica se dibuja (barras crecen, líneas se trazan) cuando entra en pantalla
+  const { ref: refEntrada, visible, animar } = useAnimacionEntrada<HTMLDivElement>()
   const seleccionar = useSeleccionPais()
   // En celular los ejes van con letra más grande
   const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
@@ -67,7 +70,7 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
 
   return (
     <Tarjeta titulo="PIB per cápita vs CO₂ per cápita" subtitulo={subtitulo} className={className}>
-      <div className={estilos.grafica}>
+      <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 4, right: 12, bottom: 4, left: 0 }}>
             <CartesianGrid stroke={colores.borde} />
@@ -102,8 +105,9 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
             <ZAxis type="number" dataKey="poblacion" range={[20, 900]} />
             <Tooltip content={<TooltipPunto />} cursor={{ strokeDasharray: '3 3' }} />
             <Scatter
-              data={datos}
-              isAnimationActive={false}
+              data={visible ? datos : []}
+              isAnimationActive={animar}
+              animationDuration={DURACION_ENTRADA}
               cursor="pointer"
               onClick={(d) => {
                 const punto = (d as unknown as { payload: Punto }).payload

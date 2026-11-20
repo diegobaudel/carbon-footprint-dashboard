@@ -86,6 +86,18 @@
   cursor: default;
 }
 
+/* ▶ Reproducir la serie: naranja para que se vea como la acción principal del año */
+.reproducir {
+  margin-left: 2px;
+  border-color: var(--color-emision);
+  background: var(--color-emision);
+}
+
+.reproducir:hover:not(:disabled) {
+  background: var(--color-emision);
+  filter: brightness(1.12);
+}
+
 .deslizador {
   grid-column: 1 / -1;
   width: 100%;

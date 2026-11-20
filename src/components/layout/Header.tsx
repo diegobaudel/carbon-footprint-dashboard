@@ -1,7 +1,11 @@
-import { useMemo, useState, useTransition } from 'react'
+import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useFiltros } from '../../context/filtros.ts'
 import { ANIO_MAX, ANIO_MIN, CONTINENTES, type RegistroPais } from '../../types.ts'
+import { IconoPausa, IconoPlay } from './Iconos.tsx'
 import estilos from './Header.module.css'
+
+/** Tiempo que se queda cada año al reproducir la serie (ms). */
+const PASO_REPRODUCCION = 1000
 
 interface Props {
   paises: RegistroPais[]
@@ -20,12 +24,40 @@ export function Header({ paises }: Props) {
   // Todos los cambios de año pasan por este componente, por eso basta el estado local.
   const [anioVisible, setAnioVisible] = useState(anio)
   const [, iniciarTransicion] = useTransition()
+  const [reproduciendo, setReproduciendo] = useState(false)
 
+  // Cualquier cambio manual del año detiene la reproducción
   function cambiarAnio(nuevo: number) {
     const valor = Math.min(ANIO_MAX, Math.max(ANIO_MIN, nuevo))
+    setReproduciendo(false)
     setAnioVisible(valor)
     iniciarTransicion(() => setAnio(valor))
   }
+
+  // ▶ Recorre 2010 → 2023 un año por segundo; todo el dashboard se mueve con él.
+  // Si ya está en el último año, empieza desde el primero.
+  function alternarReproduccion() {
+    if (reproduciendo) {
+      setReproduciendo(false)
+      return
+    }
+    if (anioVisible >= ANIO_MAX) cambiarAnio(ANIO_MIN)
+    setReproduciendo(true)
+  }
+
+  useEffect(() => {
+    if (!reproduciendo) return
+    const t = setTimeout(() => {
+      if (anioVisible >= ANIO_MAX) {
+        setReproduciendo(false)
+        return
+      }
+      const siguiente = anioVisible + 1
+      setAnioVisible(siguiente)
+      iniciarTransicion(() => setAnio(siguiente))
+    }, PASO_REPRODUCCION)
+    return () => clearTimeout(t)
+  }, [reproduciendo, anioVisible, setAnio])
 
   // Lista de países del desplegable, limitada al continente elegido
   const opcionesPais = useMemo(() => {
@@ -79,6 +111,16 @@ export function Header({ paises }: Props) {
                 title="Año siguiente"
               >
                 ›
+              </button>
+              <button
+                type="button"
+                className={`${estilos.pasoAnio} ${estilos.reproducir}`}
+                onClick={alternarReproduccion}
+                aria-pressed={reproduciendo}
+                aria-label={reproduciendo ? 'Pausar' : `Reproducir ${ANIO_MIN}–${ANIO_MAX}`}
+                title={reproduciendo ? 'Pausar' : `Reproducir ${ANIO_MIN}–${ANIO_MAX}`}
+              >
+                {reproduciendo ? <IconoPausa tamano={12} /> : <IconoPlay tamano={12} />}
               </button>
             </div>
             <input

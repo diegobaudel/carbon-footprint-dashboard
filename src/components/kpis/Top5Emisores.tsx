@@ -4,6 +4,7 @@ import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
 import { numero } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
+import { NumeroAnimado } from '../layout/NumeroAnimado.tsx'
 import estilos from './Kpi.module.css'
 
 /** KPI secundario: los 5 países con más CO₂ total (Mt) en el año y continente filtrados. */
@@ -15,7 +16,7 @@ export function Top5Emisores({ paises }: { paises: RegistroPais[] }) {
 
   return (
     <Tarjeta titulo="Top 5 emisores (Mt CO₂)">
-      <ol key={`${anio}-${continente}`} className={`${estilos.lista} ${estilos.destello}`}>
+      <ol className={estilos.lista}>
         {top.map((p, i) => (
           <li
             key={p.iso}
@@ -30,7 +31,9 @@ export function Top5Emisores({ paises }: { paises: RegistroPais[] }) {
             <span className={estilos.pista}>
               <span className={estilos.relleno} style={{ width: `${((p.co2 ?? 0) / maximo) * 100}%` }} />
             </span>
-            <span className={estilos.cifra}>{numero(p.co2, 0)}</span>
+            <span className={estilos.cifra}>
+              <NumeroAnimado valor={p.co2} formato={(v) => numero(v, 0)} />
+            </span>
           </li>
         ))}
       </ol>

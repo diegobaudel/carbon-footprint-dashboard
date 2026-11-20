@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useDatos } from './hooks/useDatos.ts'
 import { useAlcance } from './hooks/useAlcance.ts'
+import { useRevelarAlScroll } from './hooks/useMovimiento.ts'
 import { Header } from './components/layout/Header.tsx'
 import { NotasMetodologia } from './components/layout/NotasMetodologia.tsx'
 import { Seccion } from './components/layout/Seccion.tsx'
@@ -28,6 +29,9 @@ export default function App() {
   }, [modoOscuro])
   // Estado para controlar la visibilidad del modal de Metodología
   const [mostrarNotas, setMostrarNotas] = useState(false)
+  // Las tarjetas aparecen conforme se hace scroll (se apaga con "reducir movimiento")
+  const refDashboard = useRef<HTMLElement>(null)
+  useRevelarAlScroll(refDashboard, !cargando && !error)
 
   if (error) return <p className={estilos.estado}>No se pudieron cargar los datos: {error}</p>
   if (cargando) return <p className={estilos.estado}>Cargando datos…</p>
@@ -69,10 +73,10 @@ export default function App() {
         <Header paises={paises} />
       </div>
 
-      <main className={estilos.dashboard}>
+      <main ref={refDashboard} className={estilos.dashboard}>
         <Seccion numero="01" titulo="Panorama" texto="Cuánto CO₂ emite el mundo y hacia dónde va" />
         <KpiPrincipal alcance={alcance} className={estilos.kpiPrincipal} />
-        <div className={estilos.kpisSecundarios}>
+        <div className={estilos.kpisSecundarios} data-grupo>
           <Top5Emisores paises={paises} />
           <VariacionParis alcance={alcance} />
           <MayorReduccion paises={paises} />

@@ -170,6 +170,7 @@
   height: 100%;
   border-radius: 4px;
   background: var(--color-emision);
+  transition: width 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
 .cifra {
@@ -207,6 +208,10 @@
 @media (prefers-reduced-motion: reduce) {
   .destello {
     animation: none;
+  }
+
+  .relleno {
+    transition: none;
   }
 }
 

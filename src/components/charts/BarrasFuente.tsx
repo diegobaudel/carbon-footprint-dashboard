@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
 import { useEsCelular } from '../../hooks/useMedia.ts'
+import { DURACION_ENTRADA, useAnimacionEntrada } from '../../hooks/useMovimiento.ts'
 import { useSeleccionPais } from '../../hooks/useSeleccionPais.ts'
 import { colores, coloresFuente } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
@@ -26,6 +27,8 @@ const FUENTES = [
 export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
   const esCelular = useEsCelular()
+  // La gráfica se dibuja (barras crecen, líneas se trazan) cuando entra en pantalla
+  const { ref: refEntrada, visible, animar } = useAnimacionEntrada<HTMLDivElement>()
   const seleccionar = useSeleccionPais()
   // En celular los ejes van con letra más grande
   const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
@@ -49,9 +52,9 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
 
   return (
     <Tarjeta titulo="Emisiones por fuente" subtitulo={`Mt CO₂ · ${anio}`} className={className}>
-      <div className={estilos.grafica}>
+      <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={datos} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
+          <BarChart data={visible ? datos : []} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
             <CartesianGrid horizontal={false} stroke={colores.borde} />
             <XAxis
               type="number"
@@ -98,7 +101,8 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
                 stroke={colores.contorno}
                 strokeWidth={0.5}
                 barSize={16}
-                isAnimationActive={false}
+                isAnimationActive={animar}
+                animationDuration={DURACION_ENTRADA}
               />
             ))}
           </BarChart>

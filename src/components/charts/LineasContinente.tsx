@@ -14,6 +14,7 @@ import {
 } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
 import { useEsCelular } from '../../hooks/useMedia.ts'
+import { DURACION_ENTRADA, useAnimacionEntrada } from '../../hooks/useMovimiento.ts'
 import { colores, tonosSeries } from '../../styles/palette.ts'
 import { CONTINENTES, type RegistroAgregado } from '../../types.ts'
 import { numero } from '../../utils/formato.ts'
@@ -75,6 +76,8 @@ export function LineasContinente({
 }) {
   const { anio, continente } = useFiltros()
   const esCelular = useEsCelular()
+  // La gráfica se dibuja (barras crecen, líneas se trazan) cuando entra en pantalla
+  const { ref: refEntrada, visible, animar } = useAnimacionEntrada<HTMLDivElement>()
   // En celular los ejes van con letra más grande
   const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
 
@@ -100,10 +103,10 @@ export function LineasContinente({
 
   return (
     <Tarjeta titulo="Emisiones por continente, 2010–2023" subtitulo="Mt CO₂" className={className}>
-      <div className={estilos.grafica}>
+      <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
           {/* En celular las etiquetas al final de cada línea se cambian por una leyenda abajo */}
-          <LineChart data={datos} margin={{ top: 16, right: esCelular ? 12 : 92, bottom: 0, left: 0 }}>
+          <LineChart data={visible ? datos : []} margin={{ top: 16, right: esCelular ? 12 : 92, bottom: 0, left: 0 }}>
             <CartesianGrid vertical={false} stroke={colores.borde} />
             <XAxis dataKey="anio" tick={ejeTicks} axisLine={lineaEje} tickLine={false} />
             <YAxis
@@ -132,7 +135,8 @@ export function LineasContinente({
                   strokeDasharray={TRAZOS[i]}
                   strokeOpacity={atenuada ? 0.25 : 1}
                   dot={false}
-                  isAnimationActive={false}
+                  isAnimationActive={animar}
+                  animationDuration={DURACION_ENTRADA}
                 />
               )
             })}

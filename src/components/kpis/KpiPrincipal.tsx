@@ -7,6 +7,8 @@ import { ANIO_MIN } from '../../types.ts'
 import { cambioPct } from '../../utils/calculos.ts'
 import { numero, porcentaje } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
+import { NumeroAnimado } from '../layout/NumeroAnimado.tsx'
+import { DURACION_ENTRADA, useAnimacionEntrada } from '../../hooks/useMovimiento.ts'
 import estilos from './Kpi.module.css'
 
 interface Props {
@@ -25,14 +27,16 @@ export function KpiPrincipal({ alcance, className }: Props) {
   const inicial = alcance.serie.find((p) => p.anio === ANIO_MIN)
   const delta = cambioPct(inicial?.co2_pc, actual?.co2_pc)
   const baja = delta != null && delta < 0
+  const { ref: refEntrada, visible, animar } = useAnimacionEntrada<HTMLDivElement>()
 
   return (
     <Tarjeta className={`${estilos.principal} ${className ?? ''}`}>
       <p className={estilos.etiquetaFuerte}>CO₂ per cápita</p>
       <p className={estilos.etiquetaSec}>({alcance.etiqueta})</p>
       <div className={estilos.filaValor}>
-        <span key={`${alcance.etiqueta}-${anio}`} className={`${estilos.valorPrincipal} ${estilos.destello}`}>
-          {numero(actual?.co2_pc, 1)}
+        {/* La cifra cuenta hasta su valor al cargar y al cambiar de año o de alcance */}
+        <span className={estilos.valorPrincipal}>
+          <NumeroAnimado valor={actual?.co2_pc} formato={(v) => numero(v, 1)} />
         </span>
         <span className={estilos.unidadFuerte}>t CO₂/hab</span>
       </div>
@@ -48,9 +52,9 @@ export function KpiPrincipal({ alcance, className }: Props) {
           </>
         )}
       </p>
-      <div className={estilos.sparkline}>
+      <div ref={refEntrada} className={estilos.sparkline}>
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={alcance.serie} margin={{ top: 6, right: 6, bottom: 2, left: 6 }}>
+          <AreaChart data={visible ? alcance.serie : []} margin={{ top: 6, right: 6, bottom: 2, left: 6 }}>
             <defs>
               <linearGradient id="degradadoSparkline" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor={colores.emision} stopOpacity={0.22} />
@@ -72,7 +76,8 @@ export function KpiPrincipal({ alcance, className }: Props) {
               strokeWidth={2}
               fill="url(#degradadoSparkline)"
               dot={{ r: 2, fill: colores.emision, strokeWidth: 0 }}
-              isAnimationActive={false}
+              isAnimationActive={animar}
+              animationDuration={DURACION_ENTRADA}
             />
             {actual?.co2_pc != null && (
               <ReferenceDot x={anio} y={actual.co2_pc} r={4} fill={colores.texto} stroke={colores.tarjeta} />

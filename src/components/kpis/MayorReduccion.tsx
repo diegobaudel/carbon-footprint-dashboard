@@ -4,6 +4,7 @@ import { ANIO_MIN } from '../../types.ts'
 import { mayorReduccion } from '../../utils/calculos.ts'
 import { porcentaje } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
+import { NumeroAnimado } from '../layout/NumeroAnimado.tsx'
 import estilos from './Kpi.module.css'
 
 const UMBRAL_MT = 10
@@ -16,12 +17,13 @@ export function MayorReduccion({ paises }: { paises: RegistroPais[] }) {
   return (
     <Tarjeta titulo="Mayor reducción relativa">
       {resultado ? (
-        <div key={`${anio}-${continente}`} className={estilos.destello}>
-          <p className={estilos.nombrePais} title={resultado.pais.pais}>
+        <div>
+          {/* El nombre "destella" cuando cambia el país; la cifra cuenta hasta el nuevo valor */}
+          <p key={resultado.pais.iso} className={`${estilos.nombrePais} ${estilos.destello}`} title={resultado.pais.pais}>
             {resultado.pais.pais}
           </p>
           <p className={`${estilos.valor} ${resultado.cambio < 0 ? estilos.mejora : estilos.aumento}`}>
-            {porcentaje(resultado.cambio)}
+            <NumeroAnimado valor={resultado.cambio} formato={porcentaje} />
           </p>
         </div>
       ) : (
