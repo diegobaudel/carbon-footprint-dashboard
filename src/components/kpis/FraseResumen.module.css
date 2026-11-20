@@ -1,0 +1,45 @@
+/* Frase automática: una línea editorial entre el título de sección y los KPIs */
+.frase {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  padding: 12px 18px;
+  border: 1px solid var(--color-borde);
+  border-left: 4px solid var(--color-emision);
+  border-radius: var(--radio);
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  font-family: var(--fuente-titulos);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.frase strong {
+  font-family: var(--fuente);
+  font-weight: 700;
+}
+
+.etiqueta {
+  flex-shrink: 0;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-emision);
+}
+
+.sube {
+  color: var(--color-emision);
+}
+
+.baja {
+  color: var(--color-mejora);
+}
+
+@media (max-width: 720px) {
+  .frase {
+    flex-direction: column;
+    gap: 4px;
+    font-size: 14px;
+  }
+}

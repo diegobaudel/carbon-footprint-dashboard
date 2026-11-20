@@ -10,13 +10,14 @@ no tenga poligono en el 1:110m:
   2. Si tampoco esta ahi (territorios que Natural Earth incluye dentro de otro pais):
      una coordenada de referencia escrita abajo, en COORDENADAS_EXTRA.
 
-Entrada:  public/data/mundo-110m.json, public/data/mundo-50m.json, public/data/paises.json
+Entrada:  public/data/mundo-110m.json, public/data/mundo-50m.json, public/data/paises.json,
+          public/data/territorios.json (territorios del mapa sin datos en OWID)
 Salida:   public/data/centros-pequenos.json   [{"iso", "lat", "lng"}]
 
 No toca ningun dato de emisiones: solo dice donde poner el punto.
 
 Uso (desde la raiz del repo):
-  python scripts/centros_pequenos.py
+  python scripts/centros_pequenos.py   (despues de clean.py y preparar_mapa.py)
 """
 from pathlib import Path
 import json
@@ -34,6 +35,11 @@ COORDENADAS_EXTRA = {
     "MYT": (-12.83, 45.14),   # Mayotte
     "REU": (-21.11, 55.53),   # Reunion
     "TUV": (-8.52, 179.20),   # Tuvalu (Funafuti)
+    "CCK": (-12.16, 96.87),   # Islas Cocos (Keeling)
+    "CXR": (-10.49, 105.62),  # Isla de Navidad
+    "GIB": (36.14, -5.35),    # Gibraltar
+    "SJM": (78.22, 15.65),    # Svalbard (Longyearbyen)
+    "TKL": (-9.20, -171.85),  # Tokelau
 }
 
 
@@ -105,7 +111,7 @@ def centros_50m(topo) -> dict[str, tuple[float, float]]:
 
 def main() -> None:
     paises = leer("paises.json")
-    isos = sorted({p["iso"] for p in paises})
+    isos = sorted({p["iso"] for p in paises} | {t["iso"] for t in leer("territorios.json")})
     con_forma_110 = isos_con_forma(leer("mundo-110m.json"))
     topo50 = leer("mundo-50m.json")
     centros50 = centros_50m(topo50)

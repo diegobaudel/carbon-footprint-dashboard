@@ -61,6 +61,16 @@
   margin-bottom: 2px;
 }
 
+.sinDatos {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--color-control);
+  color: var(--color-texto-sec);
+  font-size: 10px;
+  font-weight: 400;
+}
+
 .activa {
   background: var(--color-control-hover);
 }

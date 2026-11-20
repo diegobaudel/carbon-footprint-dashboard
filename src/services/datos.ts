@@ -1,4 +1,4 @@
-import type { RegistroAgregado, RegistroPais } from '../types.ts'
+import { ANIO_MAX, ANIO_MIN, type Continente, type RegistroAgregado, type RegistroPais } from '../types.ts'
 
 const base = import.meta.env.BASE_URL
 
@@ -22,9 +22,47 @@ function nombreEnEspanol(registro: RegistroPais): string {
   }
 }
 
+interface Territorio {
+  iso: string
+  iso2: string | null
+  pais: string
+  continente: Continente
+}
+
+/**
+ * Territorios del mapa sin datos en OWID (los genera scripts/preparar_mapa.py).
+ * Se agregan con todas sus cifras en null, uno por año, para que se puedan buscar y
+ * elegir igual que cualquier país. No se inventa ningún dato.
+ */
+function filasSinDatos(t: Territorio): RegistroPais[] {
+  const filas: RegistroPais[] = []
+  for (let anio = ANIO_MIN; anio <= ANIO_MAX; anio++) {
+    filas.push({
+      ...t,
+      anio,
+      poblacion: null,
+      pib: null,
+      pib_pc: null,
+      co2: null,
+      co2_pc: null,
+      carbon: null,
+      petroleo: null,
+      gas: null,
+      cemento: null,
+      flaring: null,
+      en_dispersion: false,
+      sin_datos: true,
+    })
+  }
+  return filas
+}
+
 export async function cargarPaises(): Promise<RegistroPais[]> {
-  const paises = await cargarJson<RegistroPais[]>('paises.json')
-  return paises.map((p) => ({ ...p, pais: nombreEnEspanol(p) }))
+  const [paises, territorios] = await Promise.all([
+    cargarJson<RegistroPais[]>('paises.json'),
+    cargarJson<Territorio[]>('territorios.json').catch(() => [] as Territorio[]),
+  ])
+  return [...paises, ...territorios.flatMap(filasSinDatos)].map((p) => ({ ...p, pais: nombreEnEspanol(p) }))
 }
 
 export function cargarAgregados(): Promise<RegistroAgregado[]> {

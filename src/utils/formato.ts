@@ -1,11 +1,24 @@
 const MENOS = '−' // signo menos tipográfico
 
+/**
+ * Formateadores reutilizados: crear un Intl.NumberFormat es caro (toLocaleString crea uno
+ * nuevo en cada llamada) y numero() se llama miles de veces por segundo durante las
+ * animaciones y en los ejes de las gráficas.
+ */
+const formateadores = new Map<number, Intl.NumberFormat>()
+function formateador(decimales: number): Intl.NumberFormat {
+  let f = formateadores.get(decimales)
+  if (!f) {
+    f = new Intl.NumberFormat('es-MX', { minimumFractionDigits: decimales, maximumFractionDigits: decimales })
+    formateadores.set(decimales, f)
+  }
+  return f
+}
+
 /** Número con separador de miles y `decimales` fijos (formato es-MX). */
 export function numero(valor: number | null | undefined, decimales = 1): string {
   if (valor == null || Number.isNaN(valor)) return '—'
-  return valor
-    .toLocaleString('es-MX', { minimumFractionDigits: decimales, maximumFractionDigits: decimales })
-    .replace('-', MENOS)
+  return formateador(decimales).format(valor).replace('-', MENOS)
 }
 
 /** Porcentaje con signo explícito: +3.2 % / −4.1 %. */

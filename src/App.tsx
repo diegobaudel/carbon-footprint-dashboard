@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { useDatos } from './hooks/useDatos.ts'
 import { useAlcance } from './hooks/useAlcance.ts'
 import { useRevelarAlScroll } from './hooks/useMovimiento.ts'
-import { Header } from './components/layout/Header.tsx'
+import { Header, Titulo } from './components/layout/Header.tsx'
 import { NotasMetodologia } from './components/layout/NotasMetodologia.tsx'
 import { Seccion } from './components/layout/Seccion.tsx'
 import { IconoInfo, IconoLuna, IconoSol } from './components/layout/Iconos.tsx'
+import { BotonDescargaDatos } from './components/layout/BotonDescargaDatos.tsx'
 import { KpiPrincipal } from './components/kpis/KpiPrincipal.tsx'
+import { FraseResumen } from './components/kpis/FraseResumen.tsx'
 import { Top5Emisores } from './components/kpis/Top5Emisores.tsx'
 import { VariacionParis } from './components/kpis/VariacionParis.tsx'
 import { MayorReduccion } from './components/kpis/MayorReduccion.tsx'
@@ -23,12 +25,20 @@ export default function App() {
 
   // Modo oscuro: se marca en <html data-tema="oscuro"> para que las variables de
   // palette.css cambien en toda la pantalla, no solo dentro del frame de 1440 px.
-  const [modoOscuro, setModoOscuro] = useState(false)
+  // El dashboard abre en modo oscuro; el claro queda como opción
+  const [modoOscuro, setModoOscuro] = useState(true)
   useEffect(() => {
     document.documentElement.dataset.tema = modoOscuro ? 'oscuro' : 'claro'
   }, [modoOscuro])
   // Estado para controlar la visibilidad del modal de Metodología
   const [mostrarNotas, setMostrarNotas] = useState(false)
+  // Esc cierra el modal de Metodología
+  useEffect(() => {
+    if (!mostrarNotas) return
+    const alTeclear = (e: KeyboardEvent) => e.key === 'Escape' && setMostrarNotas(false)
+    document.addEventListener('keydown', alTeclear)
+    return () => document.removeEventListener('keydown', alTeclear)
+  }, [mostrarNotas])
   // Las tarjetas aparecen conforme se hace scroll (se apaga con "reducir movimiento")
   const refDashboard = useRef<HTMLElement>(null)
   useRevelarAlScroll(refDashboard, !cargando && !error)
@@ -38,43 +48,47 @@ export default function App() {
 
   return (
     <div className={estilos.frame}>
-      {/* Cabecera fija al hacer scroll: etiqueta del proyecto, botones globales y filtros */}
-      <div className={estilos.cabeceraFija}>
-        <div className={estilos.barraSuperiorGlobal}>
-          <p className={estilos.etiqueta}>
-            <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
-            Dashboard híbrido estratégico-táctico · Visualización de Datos, UCARIBE
-          </p>
-        
-          {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
-          <div className={estilos.controlesGlobales}>
-            <button
-              type="button"
-              onClick={() => setModoOscuro(!modoOscuro)}
-              className={estilos.botonTema}
-              aria-pressed={modoOscuro}
-              title={modoOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
-            >
-              {modoOscuro ? <IconoSol /> : <IconoLuna />}
-              {modoOscuro ? 'Modo claro' : 'Modo oscuro'}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMostrarNotas(!mostrarNotas)}
-              className={estilos.botonInfo}
-              title="Fuente de los datos, definiciones y cómo se calculan los indicadores"
-            >
-              <IconoInfo />
-              Metodología
-            </button>
-          </div>
+      {/* Barra superior: etiqueta del proyecto y botones globales */}
+      <div className={estilos.barraSuperiorGlobal}>
+        <p className={estilos.etiqueta}>
+          <span className={estilos.etiquetaProyecto}>Proyecto 2</span>
+          Dashboard híbrido estratégico-táctico · Visualización de Datos, UCARIBE
+        </p>
+      
+        {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
+        <div className={estilos.controlesGlobales}>
+          <BotonDescargaDatos paises={paises} className={estilos.botonDescarga} />
+          <button
+            type="button"
+            onClick={() => setModoOscuro(!modoOscuro)}
+            className={estilos.botonTema}
+            aria-pressed={modoOscuro}
+            title={modoOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          >
+            {modoOscuro ? <IconoSol /> : <IconoLuna />}
+            {modoOscuro ? 'Modo claro' : 'Modo oscuro'}
+          </button>
+          <button
+            type="button"
+            onClick={() => setMostrarNotas(!mostrarNotas)}
+            className={estilos.botonInfo}
+            title="Fuente de los datos, definiciones y cómo se calculan los indicadores"
+          >
+            <IconoInfo />
+            Metodología
+          </button>
         </div>
+      </div>
 
+      {/* Título grande; debajo, la barra de filtros que se queda fija al hacer scroll */}
+      <Titulo />
+      <div className={estilos.cabeceraFija}>
         <Header paises={paises} />
       </div>
 
       <main ref={refDashboard} className={estilos.dashboard}>
         <Seccion numero="01" titulo="Panorama" texto="Cuánto CO₂ emite el mundo y hacia dónde va" />
+        <FraseResumen paises={paises} agregados={agregados} className={estilos.resumen} />
         <KpiPrincipal alcance={alcance} className={estilos.kpiPrincipal} />
         <div className={estilos.kpisSecundarios} data-grupo>
           <Top5Emisores paises={paises} />
@@ -97,7 +111,7 @@ export default function App() {
         {mostrarNotas && (
           <div className={estilos.modalOverlay} onClick={() => setMostrarNotas(false)}>
             <div className={estilos.modalContenido} onClick={(e) => e.stopPropagation()}>
-              <button className={estilos.cerrarModal} onClick={() => setMostrarNotas(false)}>✕</button>
+              <button className={estilos.cerrarModal} onClick={() => setMostrarNotas(false)} aria-label="Cerrar">✕</button>
               <NotasMetodologia className={estilos.notas} />
             </div>
           </div>

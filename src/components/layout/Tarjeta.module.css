@@ -105,4 +105,37 @@
   line-height: 1.3;
   font-weight: normal;
   text-align: left;
-}
+}
+/* Botones de descarga: contorno naranja para que se encuentren rápido */
+.descargas {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.botonDescarga {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border: 1px solid var(--color-emision);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-emision);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.botonDescarga:hover {
+  background: var(--color-emision);
+  color: #ffffff;
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}

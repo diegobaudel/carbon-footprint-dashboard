@@ -63,13 +63,31 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
       nombre: p.pais,
       pib_pc: p.pib_pc as number,
       co2_pc: p.co2_pc as number,
-      poblacion: p.poblacion,
+      poblacion: p.poblacion ?? 0, // en_dispersion ya excluye a los territorios sin datos
     }))
 
   const subtitulo = `Tamaño = población · Escala logarítmica${anio > ANIO_MAX_PIB ? ` · PIB de ${ANIO_MAX_PIB}` : ''}`
 
   return (
-    <Tarjeta titulo="PIB per cápita vs CO₂ per cápita" subtitulo={subtitulo} className={className}>
+    <Tarjeta
+      titulo="PIB per cápita vs CO₂ per cápita"
+      subtitulo={subtitulo}
+      className={className}
+      descarga={{
+        nombre: `pib-vs-co2-per-capita-${anioPib}`,
+        imagen: true,
+        filas: () =>
+          datos.map((d) => ({
+            pais: d.nombre,
+            iso: d.iso,
+            continente: d.continente,
+            anio: anioPib,
+            pib_per_capita_usd_ppa: Math.round(d.pib_pc),
+            co2_per_capita_t: d.co2_pc,
+            poblacion: d.poblacion,
+          })),
+      }}
+    >
       <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
           <ScatterChart margin={{ top: 4, right: 12, bottom: 4, left: 0 }}>

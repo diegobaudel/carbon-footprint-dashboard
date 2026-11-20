@@ -1,44 +1,59 @@
-import { useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react'
 
 /** Duración de la animación de entrada de las gráficas (ms). */
 export const DURACION_ENTRADA = 900
 
 /** true si la persona pidió "reducir movimiento" en su sistema: entonces no se anima nada. */
+const consulta =
+  typeof window !== 'undefined' ? window.matchMedia?.('(prefers-reduced-motion: reduce)') : undefined
 export function menosMovimiento(): boolean {
-  return typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  return consulta?.matches ?? false
 }
 
 /**
  * Cifra que "cuenta" hasta su valor: de 0 al montarse y del valor anterior al nuevo
- * cuando cambia un filtro. Solo cambia lo que se ve mientras dura la animación;
- * el dato final es el mismo.
+ * cuando cambia un filtro. Escribe en el elemento del ref con textContent en cada cuadro,
+ * sin estado de React; el dato final es el mismo que pinta React.
  */
-export function useConteo(valor: number | null | undefined, duracion = 700): number | null {
-  const inicial = valor == null ? null : menosMovimiento() ? valor : 0
-  const [mostrado, setMostrado] = useState<number | null>(inicial)
-  const desde = useRef<number | null>(inicial)
-
+export function useConteo(valor: number | null | undefined, formato: (v: number | null) => string, duracion = 700) {
+  const ref = useRef<HTMLSpanElement>(null)
+  const desde = useRef<number | null>(null)
+  const formatoRef = useRef(formato)
   useEffect(() => {
+    formatoRef.current = formato
+  })
+
+  // useLayoutEffect: el texto queda escrito antes de pintar (no hay un cuadro vacío)
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
     if (valor == null) {
       desde.current = null
+      el.textContent = formatoRef.current(null)
       return
     }
-    const origen = desde.current ?? valor
+    const origen = desde.current ?? 0
     const total = menosMovimiento() || origen === valor ? 0 : duracion
+    if (total === 0) {
+      desde.current = valor
+      el.textContent = formatoRef.current(valor)
+      return
+    }
     const t0 = performance.now()
     let cuadro = 0
     const paso = (t: number) => {
-      const p = total === 0 ? 1 : Math.min(1, (t - t0) / total)
+      const p = Math.min(1, (t - t0) / total)
       const v = origen + (valor - origen) * (1 - (1 - p) ** 3) // ease-out cúbico
       desde.current = v
-      setMostrado(v)
+      el.textContent = formatoRef.current(p < 1 ? v : valor)
       if (p < 1) cuadro = requestAnimationFrame(paso)
     }
+    el.textContent = formatoRef.current(origen)
     cuadro = requestAnimationFrame(paso)
     return () => cancelAnimationFrame(cuadro)
   }, [valor, duracion])
 
-  return valor == null ? null : mostrado
+  return ref
 }
 
 /**

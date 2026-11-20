@@ -31,6 +31,7 @@ ANIO_INI, ANIO_FIN = 2010, 2023
 # OWID solo publica PIB hasta 2022: la regla de nulos de PIB se evalua en 2010-2022
 ANIO_FIN_PIB = 2022
 MAX_ANIOS_SIN_PIB = 3
+ISO_KOSOVO = "XKX"
 
 CONTINENTES = ["Africa", "Asia", "Europe", "North America", "South America", "Oceania"]
 CONTINENTES_ES = {
@@ -69,6 +70,7 @@ def cargar_continentes() -> pd.DataFrame:
     col_cont = next(x for x in c.columns if "continent" in x.lower() or "region" in x.lower())
     c = c[[col_codigo, col_cont]].dropna().drop_duplicates(col_codigo)
     c.columns = ["iso", "continente_en"]
+    c["iso"] = c["iso"].replace({"OWID_KOS": ISO_KOSOVO})
     return c
 
 
@@ -79,8 +81,12 @@ def main() -> None:
     # 1. Filtrar anios
     df = df[df["anio"].between(ANIO_INI, ANIO_FIN)].copy()
 
-    # 2. Separar paises de agregados: sin iso = agregado (World, Asia, grupos de ingreso...)
-    #    Nota: en esta version Kosovo viene sin iso, asi que queda fuera de paises.
+    # 2. Kosovo es un pais pero OWID lo publica sin iso_code (en el archivo de continentes
+    #    usa OWID_KOS). Se le pone XKX, el codigo que usan la UE y el Banco Mundial, para
+    #    que no se confunda con un agregado. Sus datos son los de OWID, sin cambios.
+    df.loc[df["pais"] == "Kosovo", "iso"] = ISO_KOSOVO
+
+    #    Separar paises de agregados: sin iso = agregado (World, Asia, grupos de ingreso...)
     agregados = df[df["iso"].isna()].copy()
     paises = df[df["iso"].notna()].copy()
 
@@ -101,6 +107,8 @@ def main() -> None:
 
     # 6. Codigo ISO alfa-2 para que React traduzca el nombre al espanol (Intl.DisplayNames)
     def a_iso2(iso3: str):
+        if iso3 == ISO_KOSOVO:
+            return "XK"  # codigo alfa-2 reservado para Kosovo (lo entiende Intl.DisplayNames)
         pais = pycountry.countries.get(alpha_3=iso3)
         return pais.alpha_2 if pais else None
 

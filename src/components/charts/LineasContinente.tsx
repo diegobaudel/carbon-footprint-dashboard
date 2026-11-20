@@ -102,7 +102,16 @@ export function LineasContinente({
     : []
 
   return (
-    <Tarjeta titulo="Emisiones por continente, 2010–2023" subtitulo="Mt CO₂" className={className}>
+    <Tarjeta
+      titulo="Emisiones por continente, 2010–2023"
+      subtitulo="Mt CO₂"
+      className={className}
+      descarga={{
+        nombre: 'emisiones-por-continente-2010-2023',
+        imagen: true,
+        filas: () => datos.map((d) => ({ anio: d.anio, ...Object.fromEntries(CONTINENTES.map((c) => [`${c} (Mt)`, d[c] ?? null])) })),
+      }}
+    >
       <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
           {/* En celular las etiquetas al final de cada línea se cambian por una leyenda abajo */}

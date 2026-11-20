@@ -241,7 +241,7 @@ export default function GloboCO2({ paises, reinicio }: Props) {
 
     // Pantallas de alta densidad: se limita la resolución del lienzo (la diferencia
     // casi no se nota y el giro va mucho más suave)
-    g.renderer().setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+    g.renderer().setPixelRatio(Math.min(window.devicePixelRatio, 1.25))
 
     const controles = g.controls()
     controles.enableDamping = true // el giro frena con suavidad al soltar
@@ -273,12 +273,28 @@ export default function GloboCO2({ paises, reinicio }: Props) {
     const obs = new ResizeObserver(medir)
     obs.observe(el)
 
-    // Si el globo no está en pantalla (scroll o pestaña oculta) se pausa el dibujo
+    // Se pausa el dibujo si el globo no está en pantalla, si la pestaña está oculta o
+    // mientras se hace scroll (el navegador deja el scroll fluido y el globo se queda
+    // quieto como imagen; 150 ms después de soltar vuelve a girar)
     let visible = true
+    let desplazando = false
+    let finScroll: ReturnType<typeof setTimeout> | undefined
     const actualizarPausa = () => {
-      if (visible && !document.hidden) g.resumeAnimation()
+      if (visible && !desplazando && !document.hidden) g.resumeAnimation()
       else g.pauseAnimation()
     }
+    const alHacerScroll = () => {
+      if (!desplazando) {
+        desplazando = true
+        actualizarPausa()
+      }
+      clearTimeout(finScroll)
+      finScroll = setTimeout(() => {
+        desplazando = false
+        actualizarPausa()
+      }, 150)
+    }
+    window.addEventListener('scroll', alHacerScroll, { passive: true })
     const vista = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting
       actualizarPausa()
@@ -292,6 +308,8 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       obs.disconnect()
       vista.disconnect()
       document.removeEventListener('visibilitychange', actualizarPausa)
+      window.removeEventListener('scroll', alHacerScroll)
+      clearTimeout(finScroll)
       controles.removeEventListener('start', detener)
       controles.removeEventListener('end', reanudar)
       g._destructor()
@@ -342,7 +360,8 @@ export default function GloboCO2({ paises, reinicio }: Props) {
     g.polygonCapMaterial((f: object) => {
       const iso = (f as Pais).properties.iso
       const r = iso ? porIso.get(iso) : undefined
-      if (r?.co2_pc == null) return material('#a0a8b4', 0.25)
+      // Sin dato: gris tenue; si es el elegido, gris firme para que se note dónde está
+      if (r?.co2_pc == null) return material('#a0a8b4', iso != null && iso === pais ? 0.9 : 0.25)
       return material(escala(r.co2_pc), opacidad(iso, r))
     })
       .polygonSideMaterial((f: object) => {
@@ -472,7 +491,10 @@ export default function GloboCO2({ paises, reinicio }: Props) {
           <>
             <p className={estilos.fichaEtiqueta}>País seleccionado · {anio}</p>
             <p className={estilos.fichaNombre}>{elegido.pais}</p>
-            <dl className={estilos.fichaDatos}>
+            {elegido.sin_datos && (
+              <p className={estilos.fichaAyuda}>Our World in Data no publica emisiones de este territorio.</p>
+            )}
+            {!elegido.sin_datos && <dl className={estilos.fichaDatos}>
               <dt>CO₂ por persona</dt>
               <dd>{numero(elegido.co2_pc, 1)} t</dd>
               <dt>CO₂ total</dt>
@@ -483,7 +505,7 @@ export default function GloboCO2({ paises, reinicio }: Props) {
               <dd className={cambio != null && cambio < 0 ? estilos.fichaBaja : estilos.fichaSube}>
                 {porcentaje(cambio)}
               </dd>
-            </dl>
+            </dl>}
           </>
         ) : (
           <>

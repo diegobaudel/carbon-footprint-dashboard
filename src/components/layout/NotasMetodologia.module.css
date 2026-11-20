@@ -1,26 +1,100 @@
-.lista {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+/* Metodología: texto largo con índice, pensado para leerse en el modal */
+.contenido {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  color: var(--color-texto-sec);
+  gap: 20px;
+  color: var(--color-texto);
   font-size: var(--texto-sec);
+  line-height: 1.6;
 }
 
-.lista li {
-  position: relative;
-  padding-left: 16px;
+.indice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  position: sticky;
+  top: -2rem;
+  z-index: 1;
+  padding: 8px 0;
+  background: var(--color-tarjeta);
 }
 
-.lista li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 6px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-emision);
+.indice a {
+  padding: 3px 10px;
+  border: 1px solid var(--color-borde);
+  border-radius: 999px;
+  color: var(--color-texto-sec);
+  font-size: var(--texto-nota);
+  text-decoration: none;
+}
+
+.indice a:hover {
+  border-color: var(--color-emision);
+  color: var(--color-emision);
+}
+
+.contenido section {
+  scroll-margin-top: 48px;
+}
+
+.contenido h3 {
+  margin: 0 0 8px;
+  font-family: var(--fuente-titulos);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-texto);
+}
+
+.contenido p {
+  margin: 0 0 8px;
+}
+
+.contenido ul {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.contenido li::marker {
+  color: var(--color-emision);
+}
+
+.contenido dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 8px 16px;
+}
+
+.contenido dt {
+  font-weight: 600;
+}
+
+.contenido dd {
+  margin: 0;
+  color: var(--color-texto-sec);
+}
+
+.contenido a {
+  color: var(--color-emision);
+}
+
+.contenido code {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--color-control);
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+@media (max-width: 720px) {
+  .contenido dl {
+    grid-template-columns: 1fr;
+  }
+
+  .contenido dd {
+    margin-bottom: 6px;
+  }
 }

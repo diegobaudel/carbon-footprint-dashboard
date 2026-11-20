@@ -41,7 +41,9 @@ export function KpiPrincipal({ alcance, className }: Props) {
         <span className={estilos.unidadFuerte}>t CO₂/hab</span>
       </div>
       <p className={estilos.delta}>
-        {anio === ANIO_MIN ? (
+        {actual?.co2_pc == null ? (
+          'Sin datos de emisiones en Our World in Data'
+        ) : anio === ANIO_MIN ? (
           'Año base de la serie'
         ) : (
           <>

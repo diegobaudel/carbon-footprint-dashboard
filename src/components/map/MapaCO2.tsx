@@ -1,7 +1,13 @@
 import 'leaflet/dist/leaflet.css'
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { CircleMarker, GeoJSON, MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
-import { geoJSON, type LatLngBoundsExpression, type Map as MapaLeaflet, type PathOptions } from 'leaflet'
+import {
+  geoJSON,
+  type GeoJSON as CapaGeoJSON,
+  type LatLngBoundsExpression,
+  type Map as MapaLeaflet,
+  type PathOptions,
+} from 'leaflet'
 import { feature } from 'topojson-client'
 import type { GeometryCollection, Topology } from 'topojson-specification'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
@@ -13,6 +19,7 @@ import type { RegistroPais } from '../../types.ts'
 import { numero, poblacion } from '../../utils/formato.ts'
 import { cargarCentrosPequenos, type CentroPais } from '../../services/datos.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
+import { IconoPausa, IconoPlay } from '../layout/Iconos.tsx'
 import estilos from './Mapa.module.css'
 
 /** TopoJSON de Natural Earth 1:50m con ISO3 (lo genera scripts/preparar_mapa.py). */
@@ -119,7 +126,7 @@ type Vista = 'mapa' | 'globo'
  * Clic en un país para filtrarlo (otro clic lo quita).
  */
 export function MapaCO2({ paises, className }: { paises: RegistroPais[]; className?: string }) {
-  const { anio, continente, pais, setContinente, setPais, reproduciendo } = useFiltros()
+  const { anio, continente, pais, setContinente, setPais, reproduciendo, reproducir, pausar } = useFiltros()
   const tema = useTema()
   const [cerca, setCerca] = useState(false)
   const [conWebGL] = useState(soportaWebGL)
@@ -275,6 +282,21 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     }
   }
 
+  // Los países se crean una sola vez; al cambiar año o filtros solo se repintan
+  // (setStyle) en lugar de volver a construir las 240 formas con sus tooltips
+  const capaGeo = useRef<CapaGeoJSON | null>(null)
+  const actual = useRef({ porIso, alClic, estilo })
+  useEffect(() => {
+    actual.current = { porIso, alClic, estilo }
+    const capa = capaGeo.current
+    if (!capa) return
+    capa.setStyle((f) => estilo(f as Pais))
+    // El borde grueso del país elegido queda por encima de sus vecinos
+    capa.eachLayer((l) => {
+      if ((l as unknown as { feature?: Pais }).feature?.properties.iso === pais) (l as unknown as { bringToFront: () => void }).bringToFront()
+    })
+  })
+
   return (
     <Tarjeta
       titulo="Mapa mundial de CO₂ per cápita"
@@ -285,6 +307,22 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
       }
       acciones={selectorVista}
       className={className}
+      descarga={{
+        nombre: `co2-por-pais-${anio}`,
+        filas: () =>
+          [...porIso.values()]
+            .sort((a, b) => a.pais.localeCompare(b.pais, 'es'))
+            .map((r) => ({
+              pais: r.pais,
+              iso: r.iso,
+              continente: r.continente,
+              anio,
+              co2_per_capita_t: r.co2_pc,
+              co2_total_mt: r.co2,
+              poblacion: r.poblacion,
+              sin_datos_owid: r.sin_datos ? 'sí' : '',
+            })),
+      }}
     >
       <div ref={zona} className={estilos.contenedor}>
         {vista === 'globo' ? (
@@ -312,23 +350,27 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
             <TileLayer url={TESELAS} attribution={ATRIBUCION} maxZoom={19} />
             {geo && (
               <GeoJSON
-                // Se vuelve a crear al cambiar filtros para repintar colores y textos
-                key={`${anio}-${continente}-${pais}-${tema}-${cerca}`}
+                // Solo se vuelve a crear al cambiar de tema; lo demás se repinta con setStyle
+                key={tema}
+                ref={capaGeo}
                 data={geo}
-                style={estilo}
+                style={(f) => actual.current.estilo(f as Pais)}
                 onEachFeature={(f: Pais, capa) => {
                   const iso = f.properties.iso
-                  const registro = iso ? porIso.get(iso) : undefined
-                  const nombre = escaparHtml(registro?.pais ?? f.properties.name)
-                  const detalle =
-                    registro?.co2_pc != null
-                      ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
-                      : 'Sin dato registrado'
-                  capa.bindTooltip(`<strong>${nombre}</strong><br/>${detalle}`, {
-                    sticky: true,
-                    className: 'tooltip-co2',
-                  })
-                  capa.on('click', () => alClic(iso))
+                  // El texto se arma al pasar el cursor, con los datos del año actual
+                  capa.bindTooltip(
+                    () => {
+                      const registro = iso ? actual.current.porIso.get(iso) : undefined
+                      const nombre = escaparHtml(registro?.pais ?? f.properties.name)
+                      const detalle =
+                        registro?.co2_pc != null
+                          ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
+                          : 'Sin dato registrado'
+                      return `<strong>${nombre}</strong><br/>${detalle}`
+                    },
+                    { sticky: true, className: 'tooltip-co2' },
+                  )
+                  capa.on('click', () => actual.current.alClic(iso))
                 }}
               />
             )}
@@ -360,6 +402,22 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
         {vista === 'mapa' && !geo && <p className={estilos.cargando}>Cargando mapa…</p>}
         <button type="button" className={estilos.botonMundo} onClick={restablecerVista}>
           Restablecer vista
+        </button>
+        {/* ▶ en el propio mapa: vuelve a la vista global y recorre 2010→2023 */}
+        <button
+          type="button"
+          className={`${estilos.botonEvolucion} ${reproduciendo ? estilos.botonEvolucionActivo : ''}`}
+          onClick={reproduciendo ? pausar : reproducir}
+          aria-pressed={reproduciendo}
+        >
+          {reproduciendo ? <IconoPausa tamano={14} /> : <IconoPlay tamano={14} />}
+          {reproduciendo ? (
+            `Pausar · ${anio}`
+          ) : (
+            <>
+              Ver evolución<span className={estilos.textoLargo}> 2010–2023</span>
+            </>
+          )}
         </button>
       </div>
 

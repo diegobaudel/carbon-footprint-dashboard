@@ -13,7 +13,14 @@ export interface ContextoFiltros extends Filtros {
   setPais: (pais: string) => void
   /** ▶ del encabezado: el dashboard recorre los años solo (el globo anima su relieve). */
   reproduciendo: boolean
-  setReproduciendo: (valor: boolean) => void
+  /** Cambia cada vez que se pide ▶ (para que el encabezado mueva su año al de inicio). */
+  solicitudReproduccion: number
+  /** ▶: restablece continente y país a "Todos" y recorre los años. */
+  reproducir: () => void
+  /** Pausa: al volver a dar ▶ sigue desde este año. */
+  pausar: () => void
+  /** Termina (llegó a 2023 o se movió el año a mano). */
+  detener: () => void
 }
 
 export const FiltrosContext = createContext<ContextoFiltros | null>(null)

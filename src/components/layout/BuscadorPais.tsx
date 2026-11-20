@@ -4,6 +4,8 @@ import estilos from './BuscadorPais.module.css'
 interface Props {
   /** [iso, nombre] ordenados por nombre. */
   opciones: [string, string][]
+  /** Países que se pueden elegir pero no tienen datos (se marcan en la lista). */
+  sinDatos?: Set<string>
   /** iso elegido o 'Todos'. */
   valor: string
   onCambiar: (iso: string) => void
@@ -21,7 +23,7 @@ function normalizar(texto: string): string {
  * también funciona como lista desplegable al hacer clic. Teclado: ↑ ↓ para moverse,
  * Enter para elegir, Esc para cerrar.
  */
-export function BuscadorPais({ opciones, valor, onCambiar, claseCampo }: Props) {
+export function BuscadorPais({ opciones, sinDatos, valor, onCambiar, claseCampo }: Props) {
   const idLista = useId()
   const raiz = useRef<HTMLDivElement>(null)
   const lista = useRef<HTMLUListElement>(null)
@@ -147,6 +149,7 @@ export function BuscadorPais({ opciones, valor, onCambiar, claseCampo }: Props) 
               onPointerEnter={() => setActivo(i)}
             >
               {nombre}
+              {sinDatos?.has(iso) && <span className={estilos.sinDatos}>sin datos</span>}
             </li>
           ))}
           {filtradas.length === 1 && <li className={estilos.vacio}>Ningún país coincide con “{texto}”</li>}

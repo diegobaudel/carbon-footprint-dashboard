@@ -7,7 +7,8 @@ export interface RegistroPais {
   pais: string
   continente: Continente | null
   anio: number
-  poblacion: number
+  /** null solo en los territorios sin datos (ver sin_datos). */
+  poblacion: number | null
   pib: number | null
   pib_pc: number | null
   co2: number | null // Mt
@@ -18,6 +19,12 @@ export interface RegistroPais {
   cemento: number | null
   flaring: number | null
   en_dispersion: boolean
+  /**
+   * Territorio que aparece en el mapa pero no tiene datos en OWID (Puerto Rico, Guam…).
+   * Viene de public/data/territorios.json: todas sus cifras son null. Existe solo para
+   * que se pueda buscar y elegir en el mapa.
+   */
+  sin_datos?: boolean
 }
 
 /** Una fila de public/data/agregados.json (Mundo o un continente en un año). */

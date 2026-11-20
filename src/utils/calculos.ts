@@ -45,7 +45,7 @@ export function topPaises(
   poblacionMinima = 0,
 ): RegistroPais[] {
   return delContinente(delAnio(paises, anio), continente)
-    .filter((p) => p[campo] != null && p.poblacion >= poblacionMinima)
+    .filter((p) => p[campo] != null && (p.poblacion ?? 0) >= poblacionMinima)
     .sort((a, b) => (b[campo] ?? 0) - (a[campo] ?? 0))
     .slice(0, n)
 }

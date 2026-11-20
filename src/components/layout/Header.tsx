@@ -17,7 +17,8 @@ interface Props {
  * Se queda fijo arriba al hacer scroll, con una franja que dice qué filtros están activos.
  */
 export function Header({ paises }: Props) {
-  const { anio, continente, pais, setAnio, setContinente, setPais, reproduciendo, setReproduciendo } = useFiltros()
+  const { anio, continente, pais, setAnio, setContinente, setPais, reproduciendo, solicitudReproduccion, reproducir, pausar, detener } =
+    useFiltros()
 
   // El año se mueve en dos tiempos: el número y el deslizador cambian al instante
   // (anioVisible) y el resto del dashboard se recalcula como transición de React,
@@ -26,30 +27,29 @@ export function Header({ paises }: Props) {
   const [anioVisible, setAnioVisible] = useState(anio)
   const [, iniciarTransicion] = useTransition()
 
+  // ▶ (desde aquí o desde el botón del mapa) fija el año de inicio en el contexto;
+  // el número visible se alinea en el mismo render
+  const [solicitudVista, setSolicitudVista] = useState(solicitudReproduccion)
+  if (solicitudReproduccion !== solicitudVista) {
+    setSolicitudVista(solicitudReproduccion)
+    setAnioVisible(anio)
+  }
+
   // Cualquier cambio manual del año detiene la reproducción
   function cambiarAnio(nuevo: number) {
     const valor = Math.min(ANIO_MAX, Math.max(ANIO_MIN, nuevo))
-    setReproduciendo(false)
+    if (reproduciendo) detener()
     setAnioVisible(valor)
     iniciarTransicion(() => setAnio(valor))
   }
 
-  // ▶ Recorre 2010 → 2023 un año por segundo; todo el dashboard se mueve con él.
-  // Si ya está en el último año, empieza desde el primero.
-  function alternarReproduccion() {
-    if (reproduciendo) {
-      setReproduciendo(false)
-      return
-    }
-    if (anioVisible >= ANIO_MAX) cambiarAnio(ANIO_MIN)
-    setReproduciendo(true)
-  }
-
+  // ▶ Recorre 2010 → 2023 un año por segundo con todos los países; todo el dashboard
+  // se mueve con él
   useEffect(() => {
     if (!reproduciendo) return
     const t = setTimeout(() => {
       if (anioVisible >= ANIO_MAX) {
-        setReproduciendo(false)
+        detener()
         return
       }
       const siguiente = anioVisible + 1
@@ -57,7 +57,7 @@ export function Header({ paises }: Props) {
       iniciarTransicion(() => setAnio(siguiente))
     }, PASO_REPRODUCCION)
     return () => clearTimeout(t)
-  }, [reproduciendo, anioVisible, setAnio, setReproduciendo])
+  }, [reproduciendo, anioVisible, setAnio, detener])
 
   // Lista de países del desplegable, limitada al continente elegido
   const opcionesPais = useMemo(() => {
@@ -67,6 +67,9 @@ export function Header({ paises }: Props) {
     }
     return [...vistos].sort((a, b) => a[1].localeCompare(b[1], 'es'))
   }, [paises, continente])
+
+  // Territorios del mapa sin datos en OWID: se pueden elegir, pero la lista lo avisa
+  const sinDatos = useMemo(() => new Set(paises.filter((p) => p.sin_datos).map((p) => p.iso)), [paises])
 
   const nombrePais = pais === 'Todos' ? null : (paises.find((p) => p.iso === pais)?.pais ?? pais)
   const hayFiltrosActivos = continente !== 'Todos' || pais !== 'Todos' || anioVisible !== ANIO_MAX
@@ -79,14 +82,8 @@ export function Header({ paises }: Props) {
 
   return (
     <div className={estilos.fijo}>
-      <header className={estilos.header}>
-        <div>
-          <h1 className={estilos.titulo}>Huella de Carbono: ¿Quién contamina más?</h1>
-          <p className={estilos.subtitulo}>
-            Emisiones de CO₂, PIB y población · {ANIO_MIN}–{ANIO_MAX} · Fuente: Our World in Data
-          </p>
-        </div>
-
+      {/* Barra de filtros: separada del título, fija arriba al hacer scroll */}
+      <div className={estilos.header} role="search" aria-label="Filtros del dashboard">
         <div className={estilos.filtros}>
           <div className={estilos.filtroAnio}>
             <span>Año</span>
@@ -115,7 +112,7 @@ export function Header({ paises }: Props) {
               <button
                 type="button"
                 className={`${estilos.pasoAnio} ${estilos.reproducir}`}
-                onClick={alternarReproduccion}
+                onClick={reproduciendo ? pausar : reproducir}
                 aria-pressed={reproduciendo}
                 aria-label={reproduciendo ? 'Pausar' : `Reproducir ${ANIO_MIN}–${ANIO_MAX}`}
                 title={reproduciendo ? 'Pausar' : `Reproducir ${ANIO_MIN}–${ANIO_MAX}`}
@@ -157,10 +154,16 @@ export function Header({ paises }: Props) {
           {/* País: buscador con lista desplegable (escribe para filtrar, sin importar acentos) */}
           <div className={estilos.filtro}>
             <span aria-hidden="true">País</span>
-            <BuscadorPais opciones={opcionesPais} valor={pais} onCambiar={setPais} claseCampo={estilos.select} />
+            <BuscadorPais
+              opciones={opcionesPais}
+              sinDatos={sinDatos}
+              valor={pais}
+              onCambiar={setPais}
+              claseCampo={estilos.select}
+            />
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Indicador de filtros activos: deja claro qué está mostrando todo el dashboard */}
       <div className={estilos.indicador} aria-live="polite">
@@ -197,5 +200,24 @@ export function Header({ paises }: Props) {
         )}
       </div>
     </div>
+  )
+}
+
+/**
+ * Título del dashboard (fila 0 del wireframe): grande y fuera de la barra de filtros,
+ * para que el tema central se entienda de un vistazo.
+ */
+export function Titulo() {
+  return (
+    <header className={estilos.hero}>
+      <p className={estilos.kicker}>
+        Emisiones de CO₂ · {ANIO_MIN}–{ANIO_MAX}
+      </p>
+      <h1 className={estilos.titulo}>Huella de Carbono: ¿Quién contamina más?</h1>
+      <p className={estilos.subtitulo}>
+        Cuánto CO₂ de combustibles fósiles e industria emite cada país, cómo cambió desde 2010 y qué relación tiene
+        con su riqueza y su población. Fuente: Our World in Data.
+      </p>
+    </header>
   )
 }

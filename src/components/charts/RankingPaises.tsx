@@ -53,7 +53,17 @@ export function RankingPaises({ paises, className }: { paises: RegistroPais[]; c
   )
 
   return (
-    <Tarjeta titulo="Ranking de países" acciones={selector} className={className}>
+    <Tarjeta
+      titulo="Ranking de países"
+      acciones={selector}
+      className={className}
+      descarga={{
+        nombre: `ranking-paises-${modo === 'total' ? 'total' : 'per-capita'}-${anio}`,
+        imagen: true,
+        filas: () =>
+          datos.map((d, i) => ({ lugar: i + 1, pais: d.nombre, iso: d.iso, anio, [`co2_${unidad.replace('/', '_')}`]: d.valor })),
+      }}
+    >
       <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={visible ? datos : []} layout="vertical" margin={{ top: 0, right: 44, bottom: 0, left: 0 }}>
