@@ -1,7 +1,7 @@
 import 'leaflet/dist/leaflet.css'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { GeoJSON, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
-import { DomEvent, type LatLngBoundsExpression, type PathOptions } from 'leaflet'
+import type { LatLngBoundsExpression, Map as MapaLeaflet, PathOptions } from 'leaflet'
 import { feature } from 'topojson-client'
 import type { GeometryCollection, Topology } from 'topojson-specification'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
@@ -98,19 +98,19 @@ function SeguirZoom({ alCambiar }: { alCambiar: (cerca: boolean) => void }) {
   return null
 }
 
-/** Botón para volver a la vista de todo el mundo. */
-function BotonMundo() {
-  const mapa = useMap()
-  const ref = useRef<HTMLButtonElement>(null)
-  useEffect(() => {
-    if (ref.current) DomEvent.disableClickPropagation(ref.current)
-  }, [])
-  return (
-    <button ref={ref} type="button" className={estilos.botonMundo} onClick={() => mapa.fitBounds(MUNDO)}>
-      Ver mundo
-    </button>
-  )
+/** El globo 3D (three.js) se descarga solo cuando alguien abre esa vista. */
+const GloboCO2 = lazy(() => import('./GloboCO2.tsx'))
+
+function soportaWebGL(): boolean {
+  try {
+    const c = document.createElement('canvas')
+    return Boolean(c.getContext('webgl2') ?? c.getContext('webgl'))
+  } catch {
+    return false
+  }
 }
+
+type Vista = 'mapa' | 'globo'
 
 /**
  * Mapa coroplético de CO₂ per cápita del año filtrado, sobre un mapa base con zoom
@@ -121,6 +121,30 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
   const { anio, continente, pais, setContinente, setPais } = useFiltros()
   const tema = useTema()
   const [cerca, setCerca] = useState(false)
+  const [vista, setVista] = useState<Vista>('mapa')
+  const [reinicioGlobo, setReinicioGlobo] = useState(0)
+  const [conWebGL] = useState(soportaWebGL)
+  const mapaRef = useRef<MapaLeaflet | null>(null)
+
+  function restablecerVista() {
+    if (vista === 'mapa') mapaRef.current?.fitBounds(MUNDO)
+    else setReinicioGlobo((n) => n + 1)
+  }
+
+  const selectorVista = conWebGL ? (
+    <div className={estilos.switchVista} role="group" aria-label="Tipo de mapa">
+      {(['mapa', 'globo'] as const).map((v) => (
+        <button
+          key={v}
+          type="button"
+          className={vista === v ? estilos.vistaActiva : ''}
+          onClick={() => setVista(v)}
+        >
+          {v === 'mapa' ? 'Mapa' : 'Globo 3D'}
+        </button>
+      ))}
+    </div>
+  ) : undefined
   const [geo, setGeo] = useState<FeatureCollection<Geometry, Pais['properties']> | null>(null)
 
   useEffect(() => {
@@ -177,51 +201,65 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
   return (
     <Tarjeta
       titulo="Mapa mundial de CO₂ per cápita"
-      subtitulo="Clic en un país para filtrar · clic en el mapa y rueda (o + / −) para acercarte hasta las ciudades"
+      subtitulo={
+        vista === 'mapa'
+          ? 'Clic en un país para filtrar · clic en el mapa y rueda (o + / −) para acercarte hasta las ciudades'
+          : 'Arrastra para girar el planeta · la altura de cada país es su CO₂ por persona'
+      }
+      acciones={selectorVista}
       className={className}
     >
       <div className={estilos.contenedor}>
-        <MapContainer
-          bounds={MUNDO}
-          minZoom={0}
-          maxZoom={12}
-          maxBounds={[
-            [-75, -200],
-            [85, 200],
-          ]}
-          maxBoundsViscosity={1}
-          scrollWheelZoom={false}
-          worldCopyJump={false}
-          className={estilos.mapa}
-        >
-          <TileLayer url={TESELAS} attribution={ATRIBUCION} maxZoom={19} />
-          {geo && (
-            <GeoJSON
-              // Se vuelve a crear al cambiar filtros para repintar colores y textos
-              key={`${anio}-${continente}-${pais}-${tema}-${cerca}`}
-              data={geo}
-              style={estilo}
-              onEachFeature={(f: Pais, capa) => {
-                const iso = f.properties.iso
-                const registro = iso ? porIso.get(iso) : undefined
-                const nombre = escaparHtml(registro?.pais ?? f.properties.name)
-                const detalle =
-                  registro?.co2_pc != null
-                    ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
-                    : 'Sin dato registrado'
-                capa.bindTooltip(`<strong>${nombre}</strong><br/>${detalle}`, {
-                  sticky: true,
-                  className: 'tooltip-co2',
-                })
-                capa.on('click', () => alClic(iso))
-              }}
-            />
-          )}
-          <SeguirZoom alCambiar={setCerca} />
-          <ZoomConRueda />
-          <BotonMundo />
-        </MapContainer>
-        {!geo && <p className={estilos.cargando}>Cargando mapa…</p>}
+        {vista === 'globo' ? (
+          <Suspense fallback={<p className={estilos.cargando}>Cargando globo…</p>}>
+            <GloboCO2 paises={paises} reinicio={reinicioGlobo} />
+          </Suspense>
+        ) : (
+          <MapContainer
+            ref={mapaRef}
+            bounds={MUNDO}
+            minZoom={0}
+            maxZoom={12}
+            maxBounds={[
+              [-75, -200],
+              [85, 200],
+            ]}
+            maxBoundsViscosity={1}
+            scrollWheelZoom={false}
+            worldCopyJump={false}
+            className={estilos.mapa}
+          >
+            <TileLayer url={TESELAS} attribution={ATRIBUCION} maxZoom={19} />
+            {geo && (
+              <GeoJSON
+                // Se vuelve a crear al cambiar filtros para repintar colores y textos
+                key={`${anio}-${continente}-${pais}-${tema}-${cerca}`}
+                data={geo}
+                style={estilo}
+                onEachFeature={(f: Pais, capa) => {
+                  const iso = f.properties.iso
+                  const registro = iso ? porIso.get(iso) : undefined
+                  const nombre = escaparHtml(registro?.pais ?? f.properties.name)
+                  const detalle =
+                    registro?.co2_pc != null
+                      ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
+                      : 'Sin dato registrado'
+                  capa.bindTooltip(`<strong>${nombre}</strong><br/>${detalle}`, {
+                    sticky: true,
+                    className: 'tooltip-co2',
+                  })
+                  capa.on('click', () => alClic(iso))
+                }}
+              />
+            )}
+            <SeguirZoom alCambiar={setCerca} />
+            <ZoomConRueda />
+          </MapContainer>
+        )}
+        {vista === 'mapa' && !geo && <p className={estilos.cargando}>Cargando mapa…</p>}
+        <button type="button" className={estilos.botonMundo} onClick={restablecerVista}>
+          Restablecer vista
+        </button>
       </div>
 
       <div className={estilos.leyenda}>

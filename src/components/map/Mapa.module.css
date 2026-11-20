@@ -139,3 +139,169 @@
   width: 14px;
   border-radius: 3px;
 }
+
+/* ---------- Interruptor Mapa | Globo 3D ---------- */
+.switchVista {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+}
+
+.switchVista button {
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-texto-sec);
+  font-size: var(--texto-nota);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.switchVista .vistaActiva {
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  font-weight: 600;
+}
+
+/* ---------- Globo 3D ---------- */
+.globo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, #f4f6f8 0%, #dde3ea 75%);
+}
+
+/* Modo oscuro: espacio con estrellas hechas con CSS (sin imágenes externas) */
+.globoNoche {
+  background:
+    radial-gradient(1px 1px at 12% 18%, rgba(255, 255, 255, 0.8), transparent 60%),
+    radial-gradient(1px 1px at 72% 12%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1.5px 1.5px at 38% 74%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 88% 62%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(1px 1px at 22% 88%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1.5px 1.5px at 58% 32%, rgba(255, 255, 255, 0.5), transparent 60%),
+    radial-gradient(1px 1px at 6% 52%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(1px 1px at 94% 90%, rgba(255, 255, 255, 0.6), transparent 60%),
+    radial-gradient(circle at 50% 45%, #0d1526 0%, #03050b 80%);
+}
+
+.lienzoGlobo {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.lienzoGlobo:active {
+  cursor: grabbing;
+}
+
+/* Ficha del país, estilo panel técnico */
+.ficha {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 2;
+  width: 220px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: rgba(8, 13, 26, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e8edf5;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.fichaEtiqueta {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--escala-2);
+}
+
+.fichaNombre {
+  margin: 4px 0 8px;
+  font-family: var(--fuente-titulos);
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.fichaAyuda {
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #b6c0d0;
+}
+
+.fichaDatos {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  font-size: 11px;
+}
+
+.fichaDatos dt {
+  color: #94a3b8;
+}
+
+.fichaDatos dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.fichaDatos .fichaBaja {
+  color: #2dd4bf;
+}
+
+.fichaDatos .fichaSube {
+  color: var(--escala-2);
+}
+
+/* Tooltip del globo (lo crea globe.gl fuera del módulo) */
+:global(.tooltip-globo) {
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(8, 13, 26, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #e8edf5;
+  font-family: var(--fuente);
+  font-size: var(--texto-nota);
+  line-height: 1.5;
+}
+
+:global(.tooltip-globo strong) {
+  font-size: var(--texto-sec);
+}
+
+@media (max-width: 720px) {
+  /* En celular la ficha va abajo, compacta, para no tapar el globo */
+  .ficha {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    padding: 8px 10px;
+  }
+
+  .fichaAyuda {
+    display: none;
+  }
+
+  .fichaNombre {
+    margin: 2px 0 4px;
+    font-size: 15px;
+  }
+
+  .fichaDatos {
+    grid-template-columns: auto 1fr auto 1fr;
+    font-size: 10px;
+  }
+}

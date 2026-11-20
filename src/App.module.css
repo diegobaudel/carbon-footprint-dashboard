@@ -166,7 +166,7 @@
 
   .kpisSecundarios { grid-template-columns: 1fr; }
   .kpisSecundarios > * { min-height: 170px; }
-  .mapa { height: 380px; }
+  .mapa { height: 500px; }
   .ranking { height: 420px; }
   .lineas,
   .dispersion { height: 340px; }
