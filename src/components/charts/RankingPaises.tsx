@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Bar, BarChart, Cell, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
 import { useEsCelular } from '../../hooks/useMedia.ts'
+import { useSeleccionPais } from '../../hooks/useSeleccionPais.ts'
 import { colores } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
@@ -22,13 +23,14 @@ const POBLACION_MINIMA_PC = 1_000_000
 export function RankingPaises({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
   const esCelular = useEsCelular()
+  const seleccionar = useSeleccionPais()
   // En celular los ejes van con letra más grande
   const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
   const [modo, setModo] = useState<Modo>('total')
 
   const campo = modo === 'total' ? 'co2' : 'co2_pc'
   const datos = topPaises(paises, anio, continente, campo, 10, modo === 'pc' ? POBLACION_MINIMA_PC : 0).map(
-    (p) => ({ iso: p.iso, nombre: p.pais, valor: p[campo] ?? 0 }),
+    (p) => ({ iso: p.iso, nombre: p.pais, continente: p.continente, valor: p[campo] ?? 0 }),
   )
   const unidad = modo === 'total' ? 'Mt' : 't/hab'
 
@@ -67,7 +69,18 @@ export function RankingPaises({ paises, className }: { paises: RegistroPais[]; c
               formatter={(v) => [`${numero(Number(v), modo === 'total' ? 0 : 1)} ${unidad}`, 'CO₂']}
               contentStyle={estiloTooltip}
             />
-            <Bar dataKey="valor" radius={[0, 3, 3, 0]} barSize={14} isAnimationActive={false}>
+            {/* Clic en una barra: elige ese país en todo el dashboard (el globo gira hacia él) */}
+            <Bar
+              dataKey="valor"
+              radius={[0, 3, 3, 0]}
+              barSize={14}
+              isAnimationActive={false}
+              cursor="pointer"
+              onClick={(d) => {
+                const fila = d.payload as (typeof datos)[number]
+                seleccionar(fila.iso, fila.continente)
+              }}
+            >
               {datos.map((d) => (
                 <Cell key={d.iso} fill={d.iso === pais ? colores.destacado : colores.emision} />
               ))}

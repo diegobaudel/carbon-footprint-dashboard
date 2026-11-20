@@ -306,3 +306,74 @@
     font-size: 10px;
   }
 }
+
+/* Botones de zoom del globo (la rueda sola es lenta para acercarse mucho) */
+.zoomGlobo {
+  position: absolute;
+  top: 52px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-control-borde);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.zoomGlobo button {
+  width: 32px;
+  height: 30px;
+  border: 0;
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.zoomGlobo button + button {
+  border-top: 1px solid var(--color-borde);
+}
+
+.zoomGlobo button:hover {
+  background: var(--color-control-hover);
+}
+
+/* Nombres de países sobre el globo (etiquetas HTML) */
+:global(.etiqueta-globo) {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-tarjeta) 75%, transparent);
+  color: var(--color-texto);
+  font-family: var(--fuente);
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.2s;
+}
+
+/* Aviso flotante: país elegido cuando el mapa no está en pantalla */
+.avisoFlotante {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-borde);
+  border-left: 3px solid var(--color-emision);
+  border-radius: 8px;
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+  font-size: var(--texto-sec);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+}
+
+.avisoFlotante span {
+  color: var(--color-texto-sec);
+}

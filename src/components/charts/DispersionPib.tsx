@@ -1,6 +1,7 @@
 import { CartesianGrid, Cell, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis, ZAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
 import { useEsCelular } from '../../hooks/useMedia.ts'
+import { useSeleccionPais } from '../../hooks/useSeleccionPais.ts'
 import { colores } from '../../styles/palette.ts'
 import { ANIO_MAX_PIB, type RegistroPais } from '../../types.ts'
 import { delAnio, delContinente } from '../../utils/calculos.ts'
@@ -15,6 +16,7 @@ const MARCAS_CO2 = [0.03, 0.1, 0.3, 1, 3, 10, 30]
 
 interface Punto {
   iso: string
+  continente: RegistroPais['continente']
   nombre: string
   pib_pc: number
   co2_pc: number
@@ -45,6 +47,7 @@ function TooltipPunto({ active, payload }: { active?: boolean; payload?: { paylo
 export function DispersionPib({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
   const esCelular = useEsCelular()
+  const seleccionar = useSeleccionPais()
   // En celular los ejes van con letra más grande
   const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
   const anioPib = Math.min(anio, ANIO_MAX_PIB)
@@ -53,6 +56,7 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
     .filter((p) => p.en_dispersion && (p.pib_pc ?? 0) > 0 && (p.co2_pc ?? 0) > 0)
     .map((p) => ({
       iso: p.iso,
+      continente: p.continente,
       nombre: p.pais,
       pib_pc: p.pib_pc as number,
       co2_pc: p.co2_pc as number,
@@ -97,7 +101,15 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
             />
             <ZAxis type="number" dataKey="poblacion" range={[20, 900]} />
             <Tooltip content={<TooltipPunto />} cursor={{ strokeDasharray: '3 3' }} />
-            <Scatter data={datos} isAnimationActive={false}>
+            <Scatter
+              data={datos}
+              isAnimationActive={false}
+              cursor="pointer"
+              onClick={(d) => {
+                const punto = (d as unknown as { payload: Punto }).payload
+                seleccionar(punto.iso, punto.continente)
+              }}
+            >
               {datos.map((d) => (
                 <Cell
                   key={d.iso}

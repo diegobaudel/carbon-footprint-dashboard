@@ -1,6 +1,7 @@
 import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { useFiltros } from '../../context/filtros.ts'
 import { useEsCelular } from '../../hooks/useMedia.ts'
+import { useSeleccionPais } from '../../hooks/useSeleccionPais.ts'
 import { colores, coloresFuente } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
@@ -25,6 +26,7 @@ const FUENTES = [
 export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; className?: string }) {
   const { anio, continente, pais } = useFiltros()
   const esCelular = useEsCelular()
+  const seleccionar = useSeleccionPais()
   // En celular los ejes van con letra más grande
   const ejeTicks = esCelular ? { ...ticks, fontSize: 12 } : ticks
 
@@ -35,6 +37,8 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
   }
 
   const datos = seleccion.map((p) => ({
+    iso: p.iso,
+    continente: p.continente,
     nombre: p.pais,
     carbon: p.carbon ?? 0,
     petroleo: p.petroleo ?? 0,
@@ -85,6 +89,11 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
                 dataKey={f.clave}
                 name={f.nombre}
                 stackId="fuentes"
+                cursor="pointer"
+                onClick={(d) => {
+                  const fila = d.payload as (typeof datos)[number]
+                  seleccionar(fila.iso, fila.continente)
+                }}
                 fill={coloresFuente[f.clave]}
                 stroke={colores.contorno}
                 strokeWidth={0.5}

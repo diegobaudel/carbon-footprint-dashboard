@@ -145,7 +145,8 @@ export default function GloboCO2({ paises, reinicio }: Props) {
     const g = new Globe(el, { animateIn: true })
       .backgroundColor('rgba(0,0,0,0)')
       .pointOfView(VISTA_INICIAL)
-      .polygonsTransitionDuration(400)
+      // Sin animación entre estados: los colores cambian al instante al mover filtros
+      .polygonsTransitionDuration(0)
       // Polígonos con menos triángulos: el globo gira más fluido en equipos modestos
       .polygonCapCurvatureResolution(8)
       .polygonLabel((f: object) => {
@@ -184,7 +185,7 @@ export default function GloboCO2({ paises, reinicio }: Props) {
     controles.enableDamping = true // el giro frena con suavidad al soltar
     controles.dampingFactor = 0.08
     controles.rotateSpeed = 0.6
-    controles.zoomSpeed = 0.8
+    controles.zoomSpeed = 1.6 // la rueda acerca más rápido
     controles.autoRotate = true
     controles.autoRotateSpeed = 0.25
 
@@ -245,57 +246,94 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       .atmosphereAltitude(0.18)
   }, [tema])
 
-  // Polígonos: color por CO₂ per cápita, relieve según el acercamiento
+  // Los polígonos se cargan una sola vez; después solo cambian colores y alturas
+  useEffect(() => {
+    if (geo) globo.current?.polygonsData(geo)
+  }, [geo])
+
+  // Colores y relieve. Con un país elegido: él resalta y sube, su continente queda
+  // medio y el resto se atenúa (aunque no haya filtro de continente).
   useEffect(() => {
     const g = globo.current
     if (!g || !geo) return
+    const elegido = pais !== 'Todos' ? porIso.get(pais) : undefined
+    const continenteFoco = elegido?.continente ?? (continente !== 'Todos' ? continente : null)
     // Lejos los colores van casi sólidos para dominar sobre la Tierra; cerca se aclaran
     // para dejar ver ciudades y calles de OpenStreetMap
     const alfa = tramo === 'lejos' ? 0.94 : tramo === 'medio' ? 0.8 : 0.25
     const contorno = tema === 'oscuro' ? 'rgba(230, 236, 245, 0.55)' : 'rgba(255, 255, 255, 0.85)'
-    g.polygonsData(geo)
-      .polygonCapMaterial((f: object) => {
-        const iso = (f as Pais).properties.iso
-        const r = iso ? porIso.get(iso) : undefined
-        const fuera = continente !== 'Todos' && r?.continente !== continente
-        if (r?.co2_pc == null) return material('#a0a8b4', 0.25)
-        return material(escala(r.co2_pc), fuera ? 0.15 : iso === pais ? 1 : alfa)
-      })
+
+    const opacidad = (iso: string | null, r: RegistroPais | undefined): number => {
+      if (iso && iso === pais) return 1
+      if (continenteFoco && r?.continente !== continenteFoco) return 0.14
+      if (elegido) return alfa * 0.6 // mismo continente que el país elegido
+      return alfa
+    }
+
+    g.polygonCapMaterial((f: object) => {
+      const iso = (f as Pais).properties.iso
+      const r = iso ? porIso.get(iso) : undefined
+      if (r?.co2_pc == null) return material('#a0a8b4', 0.25)
+      return material(escala(r.co2_pc), opacidad(iso, r))
+    })
       .polygonSideMaterial((f: object) => {
         const iso = (f as Pais).properties.iso
         const r = iso ? porIso.get(iso) : undefined
-        const fuera = continente !== 'Todos' && r?.continente !== continente
-        return r?.co2_pc != null ? material(escala(r.co2_pc), fuera ? 0.1 : 0.75) : material('#000000', 0)
+        if (r?.co2_pc == null) return material('#000000', 0)
+        return material(escala(r.co2_pc), iso === pais ? 1 : Math.min(0.75, opacidad(iso, r)))
       })
       .polygonStrokeColor((f: object) => ((f as Pais).properties.iso === pais ? '#ffffff' : contorno))
       .polygonAltitude((f: object) => {
         const iso = (f as Pais).properties.iso
         const r = iso ? porIso.get(iso) : undefined
-        if (tramo === 'cerca') return 0.002
-        if (tramo === 'medio') return 0.006
+        const extra = iso === pais ? 0.035 : 0 // el país elegido sobresale
+        if (tramo !== 'lejos') return 0.004 + extra
         // Lejos: el país sube según sus emisiones por persona (máx. ~0.12 radios)
-        return 0.006 + Math.min(r?.co2_pc ?? 0, 30) * 0.004
+        return 0.006 + Math.min(r?.co2_pc ?? 0, 30) * 0.004 + extra
       })
+  }, [geo, porIso, continente, pais, tramo, tema])
 
-    // Nombres de los países más poblados a media distancia (cerca ya los trae OSM)
-    const etiquetas =
+  // Nombres de países a media distancia como etiquetas HTML (mucho más rápidas que
+  // el texto 3D); cerca ya los trae OpenStreetMap
+  const etiquetasCache = useRef(new Map<string, HTMLDivElement>())
+  useEffect(() => {
+    const g = globo.current
+    if (!g) return
+    const datos =
       tramo === 'medio'
         ? [...porIso.values()]
             .filter((r) => centros.has(r.iso))
             .sort((a, b) => b.poblacion - a.poblacion)
-            .slice(0, 60)
+            .slice(0, 50)
             .map((r) => ({ ...centros.get(r.iso)!, texto: r.pais, iso: r.iso }))
         : []
-    g.labelsData(etiquetas)
-      .labelLat('lat')
-      .labelLng('lng')
-      .labelText('texto')
-      .labelSize(0.55)
-      .labelDotRadius(0.25)
-      .labelAltitude(0.012)
-      .labelColor(() => (tema === 'oscuro' ? 'rgba(241, 245, 249, 0.9)' : 'rgba(27, 42, 74, 0.9)'))
-      .labelResolution(2)
-  }, [geo, porIso, continente, pais, tramo, tema, centros])
+    g.htmlElementsData(datos)
+      .htmlLat('lat')
+      .htmlLng('lng')
+      .htmlAltitude(0.02)
+      .htmlElement((d: object) => {
+        const { iso, texto } = d as { iso: string; texto: string }
+        let el = etiquetasCache.current.get(iso)
+        if (!el) {
+          el = document.createElement('div')
+          el.className = 'etiqueta-globo'
+          etiquetasCache.current.set(iso, el)
+        }
+        el.textContent = texto
+        return el
+      })
+      .htmlElementVisibilityModifier((el, visible) => {
+        el.style.opacity = visible ? '1' : '0'
+      })
+  }, [porIso, centros, tramo])
+
+  function acercar(factor: number) {
+    const g = globo.current
+    if (!g) return
+    const pov = g.pointOfView()
+    g.controls().autoRotate = false
+    g.pointOfView({ altitude: Math.min(4, Math.max(0.02, pov.altitude * factor)) }, 350)
+  }
 
   // Los filtros mueven el planeta: país → lo centra; continente → gira hacia él;
   // al quitar ambos vuelve a la vista inicial y a girar solo
@@ -335,6 +373,14 @@ export default function GloboCO2({ paises, reinicio }: Props) {
   return (
     <div className={`${estilos.globo} ${tema === 'oscuro' ? estilos.globoNoche : ''}`}>
       <div ref={contenedor} className={estilos.lienzoGlobo} />
+      <div className={estilos.zoomGlobo}>
+        <button type="button" onClick={() => acercar(0.55)} aria-label="Acercar" title="Acercar">
+          +
+        </button>
+        <button type="button" onClick={() => acercar(1.8)} aria-label="Alejar" title="Alejar">
+          −
+        </button>
+      </div>
       {!geo && <p className={estilos.cargando}>Cargando globo…</p>}
       <aside className={estilos.ficha} aria-live="polite">
         {elegido ? (

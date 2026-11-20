@@ -1,4 +1,5 @@
 import { useFiltros } from '../../context/filtros.ts'
+import { useSeleccionPais } from '../../hooks/useSeleccionPais.ts'
 import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
 import { numero } from '../../utils/formato.ts'
@@ -8,6 +9,7 @@ import estilos from './Kpi.module.css'
 /** KPI secundario: los 5 países con más CO₂ total (Mt) en el año y continente filtrados. */
 export function Top5Emisores({ paises }: { paises: RegistroPais[] }) {
   const { anio, continente, pais } = useFiltros()
+  const seleccionar = useSeleccionPais()
   const top = topPaises(paises, anio, continente, 'co2', 5)
   const maximo = top[0]?.co2 ?? 1
 
@@ -15,7 +17,12 @@ export function Top5Emisores({ paises }: { paises: RegistroPais[] }) {
     <Tarjeta titulo="Top 5 emisores (Mt CO₂)">
       <ol key={`${anio}-${continente}`} className={`${estilos.lista} ${estilos.destello}`}>
         {top.map((p, i) => (
-          <li key={p.iso} className={`${estilos.fila} ${p.iso === pais ? estilos.seleccionado : ''}`}>
+          <li
+            key={p.iso}
+            className={`${estilos.fila} ${estilos.filaClic} ${p.iso === pais ? estilos.seleccionado : ''}`}
+            onClick={() => seleccionar(p.iso, p.continente)}
+            title={`Ver ${p.pais} en el globo`}
+          >
             <span className={estilos.posicion}>{i + 1}</span>
             <span className={estilos.nombreFila} title={p.pais}>
               {p.pais}

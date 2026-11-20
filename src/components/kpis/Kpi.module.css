@@ -209,3 +209,13 @@
     animation: none;
   }
 }
+
+/* Filas del Top 5: clic para elegir el país */
+.filaClic {
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.filaClic:hover .nombreFila {
+  color: var(--color-texto);
+}

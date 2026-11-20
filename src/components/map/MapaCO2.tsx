@@ -1,7 +1,7 @@
 import 'leaflet/dist/leaflet.css'
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
 import { GeoJSON, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
-import type { LatLngBoundsExpression, Map as MapaLeaflet, PathOptions } from 'leaflet'
+import { geoJSON, type LatLngBoundsExpression, type Map as MapaLeaflet, type PathOptions } from 'leaflet'
 import { feature } from 'topojson-client'
 import type { GeometryCollection, Topology } from 'topojson-specification'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
@@ -126,6 +126,8 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
   const [vista, setVista] = useState<Vista>(() => (conWebGL ? 'globo' : 'mapa'))
   const [reinicioGlobo, setReinicioGlobo] = useState(0)
   const mapaRef = useRef<MapaLeaflet | null>(null)
+  // El mapa de Leaflet se crea después del primer render: se avisa cuando ya existe
+  const [mapaListo, setMapaListo] = useState(false)
 
   function restablecerVista() {
     if (vista === 'mapa') mapaRef.current?.fitBounds(MUNDO)
@@ -170,6 +172,43 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     [paises, anio],
   )
 
+  // El mapa plano también sigue a los filtros: país → lo encuadra; continente → lo
+  // encuadra; sin filtros → mundo
+  useEffect(() => {
+    const mapa = mapaRef.current
+    if (vista !== 'mapa' || !mapa || !mapaListo || !geo) return
+    const elegido = pais !== 'Todos' ? porIso.get(pais) : undefined
+    const objetivo = elegido
+      ? geo.features.filter((f) => f.properties.iso === pais)
+      : continente !== 'Todos'
+        ? geo.features.filter((f) => f.properties.iso && porIso.get(f.properties.iso)?.continente === continente)
+        : []
+    if (objetivo.length === 0) {
+      mapa.flyToBounds(MUNDO, { duration: 0.8 })
+      return
+    }
+    const limites = geoJSON({ type: 'FeatureCollection', features: objetivo } as FeatureCollection).getBounds()
+    mapa.flyToBounds(limites, { duration: 0.8, maxZoom: elegido ? 5 : 3, padding: [20, 20] })
+    // porIso cambia con el año; solo se vuela al cambiar país o continente
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pais, continente, vista, geo, mapaListo])
+
+  // Aviso flotante: si hay un país elegido y el mapa no está en pantalla
+  const zona = useRef<HTMLDivElement>(null)
+  const [mapaVisible, setMapaVisible] = useState(true)
+  useEffect(() => {
+    const el = zona.current
+    if (!el) return
+    // rootMargin descuenta la cabecera fija (~200 px): lo que queda detrás no cuenta como visible
+    const obs = new IntersectionObserver(([e]) => setMapaVisible(e.isIntersecting), {
+      threshold: 0.15,
+      rootMargin: '-200px 0px 0px 0px',
+    })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [])
+  const elegidoAviso = pais !== 'Todos' ? porIso.get(pais) : undefined
+
   function alClic(iso: string | null) {
     if (!iso) return
     const registro = porIso.get(iso)
@@ -184,18 +223,28 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     setPais(iso)
   }
 
+  // Con un país elegido: él resalta, su continente queda medio y el resto se atenúa
+  const registroElegido = pais !== 'Todos' ? porIso.get(pais) : undefined
+  const continenteFoco = registroElegido?.continente ?? (continente !== 'Todos' ? continente : null)
+
   function estilo(f?: Pais): PathOptions {
     const iso = f?.properties.iso ?? null
     const registro = iso ? porIso.get(iso) : undefined
     const valor = registro?.co2_pc
-    const fuera = continente !== 'Todos' && registro?.continente !== continente
     const elegido = iso != null && iso === pais
+    const base = cerca ? 0.35 : 0.8 // cerca: más transparente para leer ciudades y calles
+    const opacidad = elegido
+      ? 0.95
+      : continenteFoco && registro?.continente !== continenteFoco
+        ? 0.12
+        : registroElegido
+          ? base * 0.6
+          : base
     return {
       fillColor: valor != null ? escala(valor) : colores.sinDato,
-      // Lejos: color fuerte. Cerca: más transparente para que se lean ciudades y calles.
-      fillOpacity: fuera ? 0.12 : cerca ? 0.35 : 0.8,
+      fillOpacity: opacidad,
       color: elegido ? colores.texto : colores.contorno,
-      weight: elegido ? 2.5 : 0.6,
+      weight: elegido ? 3 : 0.6,
     }
   }
 
@@ -210,14 +259,17 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
       acciones={selectorVista}
       className={className}
     >
-      <div className={estilos.contenedor}>
+      <div ref={zona} className={estilos.contenedor}>
         {vista === 'globo' ? (
           <Suspense fallback={<p className={estilos.cargando}>Cargando globo…</p>}>
             <GloboCO2 paises={paises} reinicio={reinicioGlobo} />
           </Suspense>
         ) : (
           <MapContainer
-            ref={mapaRef}
+            ref={(m) => {
+              mapaRef.current = m
+              setMapaListo(m !== null)
+            }}
             bounds={MUNDO}
             minZoom={0}
             maxZoom={12}
@@ -262,6 +314,17 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
           Restablecer vista
         </button>
       </div>
+
+      {elegidoAviso && !mapaVisible && (
+        <button
+          type="button"
+          className={estilos.avisoFlotante}
+          onClick={() => zona.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+        >
+          <strong>{elegidoAviso.pais}</strong>
+          <span>{numero(elegidoAviso.co2_pc, 1)} t/hab · ver en el {vista === 'globo' ? 'globo' : 'mapa'} ↑</span>
+        </button>
+      )}
 
       <div className={estilos.leyenda}>
         <span>t CO₂/hab · {anio}</span>
