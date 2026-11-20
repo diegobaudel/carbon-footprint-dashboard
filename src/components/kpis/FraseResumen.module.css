@@ -25,11 +25,11 @@
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
 }
 
 .sube {
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
 }
 
 .baja {

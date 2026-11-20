@@ -9,7 +9,7 @@ import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
 import { numero } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
-import { estiloTooltip, lineaEje, ticks } from './ejes.ts'
+import { estiloTooltip, lineaEje, ticks, tituloX } from './ejes.ts'
 import estilos from './Grafica.module.css'
 
 type Modo = 'total' | 'pc'
@@ -66,8 +66,15 @@ export function RankingPaises({ paises, className }: { paises: RegistroPais[]; c
     >
       <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={visible ? datos : []} layout="vertical" margin={{ top: 0, right: 44, bottom: 0, left: 0 }}>
-            <XAxis type="number" hide />
+          <BarChart data={visible ? datos : []} layout="vertical" margin={{ top: 0, right: 44, bottom: 18, left: 0 }}>
+            <XAxis
+              type="number"
+              tick={ejeTicks}
+              axisLine={lineaEje}
+              tickLine={false}
+              tickFormatter={(v) => numero(Number(v), 0)}
+              label={tituloX(modo === 'total' ? 'CO₂ total (Mt)' : 'CO₂ por persona (t/hab)')}
+            />
             <YAxis
               type="category"
               dataKey="nombre"

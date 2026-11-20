@@ -30,7 +30,7 @@
 
 .indice a:hover {
   border-color: var(--color-emision);
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
 }
 
 .contenido section {
@@ -58,7 +58,7 @@
 }
 
 .contenido li::marker {
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
 }
 
 .contenido dl {
@@ -78,7 +78,7 @@
 }
 
 .contenido a {
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
 }
 
 .contenido code {

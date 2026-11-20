@@ -12,7 +12,7 @@
   font-family: var(--fuente-titulos);
   font-size: 15px;
   font-weight: 600;
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
 }
 
 .titulo {

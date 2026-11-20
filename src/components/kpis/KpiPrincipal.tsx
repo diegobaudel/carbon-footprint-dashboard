@@ -5,7 +5,7 @@ import { colores } from '../../styles/palette.ts'
 import { estiloTooltip } from '../charts/ejes.ts'
 import { ANIO_MIN } from '../../types.ts'
 import { cambioPct } from '../../utils/calculos.ts'
-import { numero, porcentaje } from '../../utils/formato.ts'
+import { cambioConFlecha, numero } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
 import { NumeroAnimado } from '../layout/NumeroAnimado.tsx'
 import { DURACION_ENTRADA, useAnimacionEntrada } from '../../hooks/useMovimiento.ts'
@@ -48,7 +48,7 @@ export function KpiPrincipal({ alcance, className }: Props) {
         ) : (
           <>
             <span className={baja ? estilos.mejora : estilos.aumento}>
-              {baja ? '▼' : '▲'} {porcentaje(delta)}
+              {cambioConFlecha(delta)}
             </span>{' '}
             vs {ANIO_MIN}
           </>

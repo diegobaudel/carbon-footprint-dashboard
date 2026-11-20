@@ -64,3 +64,11 @@ export function IconoDescarga({ tamano = 16 }: Props) {
     </svg>
   )
 }
+
+export function IconoFiltro({ tamano = 16 }: Props) {
+  return (
+    <svg {...base(tamano)}>
+      <path d="M4 5h16l-6 7.5V19l-4-2v-4.5L4 5Z" />
+    </svg>
+  )
+}

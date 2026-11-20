@@ -20,7 +20,11 @@
   --color-mapa-oceano: transparent;
 
   /* Significado */
-  --color-emision: #c65d21;       /* emisiones: acento principal */
+  --color-emision: #c65d21;       /* emisiones: acento principal (barras, líneas, mapa) */
+  /* Contraste (WCAG AA ≥ 4.5:1): el naranja #c65d21 da 4.2:1 sobre blanco, así que el
+     texto naranja y los botones con letra blanca usan un tono más oscuro del mismo naranja */
+  --color-acento-texto: #a64b17;  /* 5.8:1 sobre blanco */
+  --color-acento-boton: #a64b17;  /* letra blanca encima: 5.8:1 */
   --color-mejora: #0f766e;        /* mejora / reducción */
   --color-sin-dato: #d1d5db;      /* países sin dato en el mapa */
 
@@ -30,6 +34,13 @@
   --escala-3: #c65d21;
   --escala-4: #8b4513;
   --escala-5: #4a2c1a;
+
+  /* Barras por fuente (carbón → flaring) */
+  --fuente-carbon: #4a2c1a;
+  --fuente-petroleo: #8b4513;
+  --fuente-gas: #c65d21;
+  --fuente-cemento: #f2b880;
+  --fuente-flaring: #d1d5db;
 
   /* Líneas por continente (en oscuro se usan los tonos claros de la escala) */
   --serie-1: #4a2c1a;
@@ -82,11 +93,18 @@
   --color-control-borde: #334155;
   --color-contorno: #5b6b8a;      /* silueta de países y barras sobre fondo oscuro */
   --color-mapa-oceano: #1d2a42;   /* océano más claro que la tarjeta: los cafés no se pierden */
+  --color-acento-texto: #f2b880;  /* texto naranja en oscuro: durazno de la escala, 9.3:1 */
 
   --serie-1: #f9e0c7;
   --serie-2: #f2b880;
   --serie-3: #c65d21;
-  --serie-4: #8b4513;
+  --fuente-carbon: #f9e0c7;
+  --fuente-petroleo: #f2b880;
+  --fuente-gas: #e8915a;
+  --fuente-cemento: #c65d21;
+  --fuente-flaring: #94a3b8;
+
+  --serie-4: #e8915a;             /* entre durazno y naranja: el café #8b4513 daba 2.3:1 sobre la tarjeta */
   --serie-5: #f1f5f9;
   --serie-6: #94a3b8;
 

@@ -8,7 +8,7 @@ import { ANIO_MAX_PIB, type RegistroPais } from '../../types.ts'
 import { delAnio, delContinente } from '../../utils/calculos.ts'
 import { dolares, numero, poblacion } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
-import { lineaEje, ticks } from './ejes.ts'
+import { lineaEje, ticks, tituloY } from './ejes.ts'
 import estilos from './Grafica.module.css'
 
 /** Marcas de los ejes logarítmicos (USD PPA y t/hab). */
@@ -90,7 +90,7 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
     >
       <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 4, right: 12, bottom: 4, left: 0 }}>
+          <ScatterChart margin={{ top: 4, right: 12, bottom: 4, left: 12 }}>
             <CartesianGrid stroke={colores.borde} />
             <XAxis
               type="number"
@@ -117,8 +117,9 @@ export function DispersionPib({ paises, className }: { paises: RegistroPais[]; c
               tick={ejeTicks}
               axisLine={lineaEje}
               tickLine={false}
-              width={40}
+              width={56}
               tickFormatter={(v) => numero(Number(v), Number(v) < 0.1 ? 2 : Number(v) < 1 ? 1 : 0)}
+              label={tituloY('CO₂ per cápita (t/hab)')}
             />
             <ZAxis type="number" dataKey="poblacion" range={[20, 900]} />
             <Tooltip content={<TooltipPunto />} cursor={{ strokeDasharray: '3 3' }} />

@@ -19,7 +19,7 @@ import { colores, tonosSeries } from '../../styles/palette.ts'
 import { CONTINENTES, type RegistroAgregado } from '../../types.ts'
 import { numero } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
-import { estiloTooltip, lineaEje, ticks } from './ejes.ts'
+import { estiloTooltip, lineaEje, ticks, tituloX, tituloY } from './ejes.ts'
 import estilos from './Grafica.module.css'
 
 /** Trazos para distinguir las líneas sin depender solo del color (accesibilidad). */
@@ -115,15 +115,16 @@ export function LineasContinente({
       <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
           {/* En celular las etiquetas al final de cada línea se cambian por una leyenda abajo */}
-          <LineChart data={visible ? datos : []} margin={{ top: 16, right: esCelular ? 12 : 92, bottom: 0, left: 0 }}>
+          <LineChart data={visible ? datos : []} margin={{ top: 16, right: esCelular ? 12 : 92, bottom: 18, left: 10 }}>
             <CartesianGrid vertical={false} stroke={colores.borde} />
-            <XAxis dataKey="anio" tick={ejeTicks} axisLine={lineaEje} tickLine={false} />
+            <XAxis dataKey="anio" tick={ejeTicks} axisLine={lineaEje} tickLine={false} label={tituloX('Año')} />
             <YAxis
               tick={ejeTicks}
-              axisLine={false}
+              axisLine={lineaEje}
               tickLine={false}
-              width={52}
+              width={68}
               tickFormatter={(v) => numero(Number(v), 0)}
+              label={tituloY('CO₂ (Mt)')}
             />
             <Tooltip formatter={(v) => `${numero(Number(v), 0)} Mt`} contentStyle={estiloTooltip} />
             <ReferenceLine

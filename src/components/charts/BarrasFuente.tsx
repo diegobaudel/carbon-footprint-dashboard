@@ -8,7 +8,7 @@ import type { RegistroPais } from '../../types.ts'
 import { topPaises } from '../../utils/calculos.ts'
 import { numero } from '../../utils/formato.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
-import { estiloTooltip, lineaEje, ticks } from './ejes.ts'
+import { estiloTooltip, lineaEje, ticks, tituloX } from './ejes.ts'
 import estilos from './Grafica.module.css'
 
 const FUENTES = [
@@ -73,7 +73,7 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
     >
       <div ref={refEntrada} className={estilos.grafica}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={visible ? datos : []} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 0 }}>
+          <BarChart data={visible ? datos : []} layout="vertical" margin={{ top: 0, right: 16, bottom: 18, left: 0 }}>
             <CartesianGrid horizontal={false} stroke={colores.borde} />
             <XAxis
               type="number"
@@ -81,6 +81,7 @@ export function BarrasFuente({ paises, className }: { paises: RegistroPais[]; cl
               axisLine={lineaEje}
               tickLine={false}
               tickFormatter={(v) => numero(Number(v), 0)}
+              label={tituloX('CO₂ (Mt)')}
             />
             <YAxis
               type="category"

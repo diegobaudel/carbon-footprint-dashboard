@@ -21,7 +21,7 @@
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
 }
 
 /* Fila 0 · encabezado: barra de lado a lado, fuera de la cuadrícula */
@@ -119,9 +119,9 @@
   align-items: center;
   gap: 6px;
   padding: 0.35rem 0.85rem;
-  border: 1px solid var(--color-emision);
+  border: 1px solid var(--color-acento-boton);
   border-radius: 6px;
-  background: var(--color-emision);
+  background: var(--color-acento-boton);
   color: #ffffff;
   font-size: 0.85rem;
   font-weight: 600;

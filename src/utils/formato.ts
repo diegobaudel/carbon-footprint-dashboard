@@ -28,6 +28,15 @@ export function porcentaje(valor: number | null | undefined, decimales = 1): str
   return `${signo}${numero(valor, decimales)} %`
 }
 
+/**
+ * Cambio con flecha en lugar de signo: ▼ 0.7 % (bajó) / ▲ 6.1 % (subió).
+ * La flecha ya dice la dirección, así que el número va sin + ni −.
+ */
+export function cambioConFlecha(valor: number | null | undefined, decimales = 1): string {
+  if (valor == null || Number.isNaN(valor)) return '—'
+  return `${valor < 0 ? '▼' : '▲'} ${numero(Math.abs(valor), decimales)} %`
+}
+
 /** Población abreviada: 1.4 mil M, 128.5 M, 850 mil. */
 export function poblacion(valor: number | null | undefined): string {
   if (valor == null) return '—'

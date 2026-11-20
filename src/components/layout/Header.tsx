@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useFiltros } from '../../context/filtros.ts'
 import { ANIO_MAX, ANIO_MIN, CONTINENTES, type RegistroPais } from '../../types.ts'
-import { IconoPausa, IconoPlay } from './Iconos.tsx'
+import { IconoFiltro, IconoPausa, IconoPlay } from './Iconos.tsx'
 import { BuscadorPais } from './BuscadorPais.tsx'
 import estilos from './Header.module.css'
 
@@ -84,6 +84,10 @@ export function Header({ paises }: Props) {
     <div className={estilos.fijo}>
       {/* Barra de filtros: separada del título, fija arriba al hacer scroll */}
       <div className={estilos.header} role="search" aria-label="Filtros del dashboard">
+        <p className={estilos.etiquetaFiltros}>
+          <IconoFiltro tamano={18} />
+          <span>Filtros</span>
+        </p>
         <div className={estilos.filtros}>
           <div className={estilos.filtroAnio}>
             <span>Año</span>

@@ -38,11 +38,15 @@ export const tonosSeries = [
   'var(--serie-6)',
 ] as const
 
-/** Colores de las barras apiladas por fuente: escala naranja-café + gris. */
+/**
+ * Colores de las barras apiladas por fuente: escala naranja-café + gris.
+ * Van como variables porque en modo oscuro los cafés oscuros casi no se veían sobre la
+ * tarjeta (1.3:1); ahí la escala se invierte hacia los tonos claros (ver palette.css).
+ */
 export const coloresFuente = {
-  carbon: '#4A2C1A',
-  petroleo: '#8B4513',
-  gas: '#C65D21',
-  cemento: '#F2B880',
-  flaring: '#D1D5DB',
+  carbon: 'var(--fuente-carbon)',
+  petroleo: 'var(--fuente-petroleo)',
+  gas: 'var(--fuente-gas)',
+  cemento: 'var(--fuente-cemento)',
+  flaring: 'var(--fuente-flaring)',
 } as const

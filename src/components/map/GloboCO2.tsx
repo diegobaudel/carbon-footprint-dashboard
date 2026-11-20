@@ -12,7 +12,7 @@ import { cortesMapa, escalaMapa } from '../../styles/palette.ts'
 import { ANIO_MAX, ANIO_MIN, type Continente, type RegistroPais } from '../../types.ts'
 import { cambioPct } from '../../utils/calculos.ts'
 import { cargarCentrosPequenos, type CentroPais } from '../../services/datos.ts'
-import { numero, poblacion, porcentaje } from '../../utils/formato.ts'
+import { cambioConFlecha, numero, poblacion } from '../../utils/formato.ts'
 import estilos from './Mapa.module.css'
 
 /** Polígonos 1:110m: suficientes para el globo y ligeros para WebGL. */
@@ -503,7 +503,7 @@ export default function GloboCO2({ paises, reinicio }: Props) {
               <dd>{poblacion(elegido.poblacion)}</dd>
               <dt>Cambio vs {ANIO_MIN}</dt>
               <dd className={cambio != null && cambio < 0 ? estilos.fichaBaja : estilos.fichaSube}>
-                {porcentaje(cambio)}
+                {cambioConFlecha(cambio)}
               </dd>
             </dl>}
           </>

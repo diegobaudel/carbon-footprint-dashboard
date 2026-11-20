@@ -117,10 +117,10 @@
   align-items: center;
   gap: 4px;
   padding: 4px 9px;
-  border: 1px solid var(--color-emision);
+  border: 1px solid var(--color-acento-texto);
   border-radius: 999px;
   background: transparent;
-  color: var(--color-emision);
+  color: var(--color-acento-texto);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -129,7 +129,7 @@
 }
 
 .botonDescarga:hover {
-  background: var(--color-emision);
+  background: var(--color-acento-boton);
   color: #ffffff;
 }
 
