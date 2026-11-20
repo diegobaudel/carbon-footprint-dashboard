@@ -1,0 +1,68 @@
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sec);
+}
+
+.tabla th {
+  position: sticky;
+  top: 0;
+  padding: 10px 8px;
+  background: var(--color-tarjeta);
+  border-bottom: 1px solid var(--color-borde);
+  color: var(--color-texto-sec);
+  font-size: var(--texto-nota);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabla td {
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--color-borde);
+  vertical-align: middle;
+}
+
+.tabla tbody tr {
+  cursor: pointer;
+}
+
+.tabla tbody tr:hover {
+  background: var(--color-control-hover);
+}
+
+.num {
+  text-align: right !important;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.lugar {
+  color: var(--color-texto-sec);
+}
+
+.pais {
+  font-weight: 600;
+}
+
+.baja {
+  color: var(--color-mejora);
+  font-weight: 600;
+}
+
+.sube {
+  color: var(--color-acento-texto);
+  font-weight: 600;
+}
+
+.vacio {
+  padding: 16px 0;
+  color: var(--color-texto-sec);
+}
+
+@media (max-width: 720px) {
+  .tabla th:last-child,
+  .tabla td:last-child {
+    display: none;
+  }
+}

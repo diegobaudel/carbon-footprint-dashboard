@@ -92,3 +92,12 @@
     min-width: 200px;
   }
 }
+
+/* Modo claro: el campo va sobre el fondo de la página (sin la barra azul) */
+:global(:root[data-tema='claro']) .campo::placeholder {
+  color: var(--color-texto-sec);
+}
+
+:global(:root[data-tema='claro']) .flecha {
+  color: var(--color-texto);
+}

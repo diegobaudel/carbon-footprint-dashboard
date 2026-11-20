@@ -345,3 +345,57 @@
     display: none;
   }
 }
+
+/* ---------- Modo claro: sin contenedor; los controles quedan "flotando" debajo del
+   subtítulo, alineados a la izquierda con el texto del título ---------- */
+:global(:root[data-tema='claro']) .header {
+  min-height: 0;
+  padding: 2px 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--color-texto);
+}
+
+:global(:root[data-tema='claro']) .etiquetaFiltros {
+  color: var(--color-acento-texto);
+  border-right-color: var(--color-borde);
+}
+
+:global(:root[data-tema='claro']) .filtros > * + * {
+  border-left-color: var(--color-borde);
+}
+
+:global(:root[data-tema='claro']) .filtroAnio,
+:global(:root[data-tema='claro']) .filtro,
+:global(:root[data-tema='claro']) .extremos {
+  color: var(--color-texto-sec);
+}
+
+:global(:root[data-tema='claro']) .controlAnio strong {
+  color: var(--color-texto);
+}
+
+:global(:root[data-tema='claro']) .pasoAnio {
+  border-color: var(--color-control-borde);
+  background: var(--color-control);
+  color: var(--color-texto);
+}
+
+:global(:root[data-tema='claro']) .pasoAnio:hover:not(:disabled) {
+  background: var(--color-control-hover);
+}
+
+/* ▶ sigue naranja con letra blanca */
+:global(:root[data-tema='claro']) .pasoAnio.reproducir {
+  border-color: var(--color-acento-boton);
+  background: var(--color-acento-boton);
+  color: #ffffff;
+}
+
+:global(:root[data-tema='claro']) .select {
+  border-color: var(--color-control-borde);
+  background: var(--color-tarjeta);
+  color: var(--color-texto);
+}

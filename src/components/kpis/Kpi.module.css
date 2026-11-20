@@ -224,3 +224,24 @@
 .filaClic:hover .nombreFila {
   color: var(--color-texto);
 }
+
+/* ⓘ de "Mayor reducción relativa": abre la tabla completa */
+.botonTabla {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--color-acento-texto);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-acento-texto);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.botonTabla:hover {
+  background: var(--color-acento-boton);
+  border-color: var(--color-acento-boton);
+  color: #ffffff;
+}
