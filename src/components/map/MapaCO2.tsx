@@ -121,9 +121,10 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
   const { anio, continente, pais, setContinente, setPais } = useFiltros()
   const tema = useTema()
   const [cerca, setCerca] = useState(false)
-  const [vista, setVista] = useState<Vista>('mapa')
-  const [reinicioGlobo, setReinicioGlobo] = useState(0)
   const [conWebGL] = useState(soportaWebGL)
+  // El globo 3D es la vista inicial; sin WebGL se queda el mapa plano
+  const [vista, setVista] = useState<Vista>(() => (conWebGL ? 'globo' : 'mapa'))
+  const [reinicioGlobo, setReinicioGlobo] = useState(0)
   const mapaRef = useRef<MapaLeaflet | null>(null)
 
   function restablecerVista() {
@@ -133,7 +134,7 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
 
   const selectorVista = conWebGL ? (
     <div className={estilos.switchVista} role="group" aria-label="Tipo de mapa">
-      {(['mapa', 'globo'] as const).map((v) => (
+      {(['globo', 'mapa'] as const).map((v) => (
         <button
           key={v}
           type="button"

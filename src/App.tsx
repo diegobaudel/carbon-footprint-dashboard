@@ -4,6 +4,7 @@ import { useAlcance } from './hooks/useAlcance.ts'
 import { Header } from './components/layout/Header.tsx'
 import { NotasMetodologia } from './components/layout/NotasMetodologia.tsx'
 import { Seccion } from './components/layout/Seccion.tsx'
+import { IconoInfo, IconoLuna, IconoSol } from './components/layout/Iconos.tsx'
 import { KpiPrincipal } from './components/kpis/KpiPrincipal.tsx'
 import { Top5Emisores } from './components/kpis/Top5Emisores.tsx'
 import { VariacionParis } from './components/kpis/VariacionParis.tsx'
@@ -43,19 +44,24 @@ export default function App() {
         
           {/* Botones de Control Global: Modo Oscuro y Metodología Flotante */}
           <div className={estilos.controlesGlobales}>
-            <button 
+            <button
+              type="button"
               onClick={() => setModoOscuro(!modoOscuro)}
               className={estilos.botonTema}
-              title="Cambiar modo oscuro/claro"
+              aria-pressed={modoOscuro}
+              title={modoOscuro ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
             >
-              {modoOscuro ? '☀️ Modo Claro' : '🌙 Modo Oscuro'}
+              {modoOscuro ? <IconoSol /> : <IconoLuna />}
+              {modoOscuro ? 'Modo claro' : 'Modo oscuro'}
             </button>
-            <button 
-              onClick={() => setMostrarNotas(!mostrarNotas)} 
+            <button
+              type="button"
+              onClick={() => setMostrarNotas(!mostrarNotas)}
               className={estilos.botonInfo}
-              title="Notas y metodología"
+              title="Fuente de los datos, definiciones y cómo se calculan los indicadores"
             >
-              ℹ️ Metodología
+              <IconoInfo />
+              Metodología
             </button>
           </div>
         </div>

@@ -5,10 +5,11 @@ import { feature } from 'topojson-client'
 import type { GeometryCollection, Topology } from 'topojson-specification'
 import type { Feature, Geometry } from 'geojson'
 import { scaleThreshold } from 'd3-scale'
+import { MeshBasicMaterial } from 'three'
 import { useFiltros } from '../../context/filtros.ts'
 import { useTema } from '../../hooks/useTema.ts'
 import { cortesMapa, escalaMapa } from '../../styles/palette.ts'
-import { ANIO_MIN, type RegistroPais } from '../../types.ts'
+import { ANIO_MIN, type Continente, type RegistroPais } from '../../types.ts'
 import { cambioPct } from '../../utils/calculos.ts'
 import { numero, poblacion, porcentaje } from '../../utils/formato.ts'
 import estilos from './Mapa.module.css'
@@ -50,9 +51,30 @@ const escala = scaleThreshold<number, string>().domain([...cortesMapa]).range([.
 
 type Pais = Feature<Geometry, { iso: string | null; name: string }>
 
-function conAlfa(hex: string, alfa: number): string {
-  const n = parseInt(hex.slice(1), 16)
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alfa})`
+/** Hacia dónde mira el globo al filtrar por continente. */
+const VISTA_CONTINENTE: Record<Continente, { lat: number; lng: number; altitude: number }> = {
+  África: { lat: 3, lng: 20, altitude: 1.5 },
+  Asia: { lat: 32, lng: 92, altitude: 1.6 },
+  Europa: { lat: 52, lng: 15, altitude: 0.95 },
+  Norteamérica: { lat: 42, lng: -98, altitude: 1.45 },
+  Sudamérica: { lat: -18, lng: -60, altitude: 1.4 },
+  Oceanía: { lat: -24, lng: 140, altitude: 1.35 },
+}
+
+/**
+ * Materiales "sin luz" (MeshBasicMaterial): el color del país se ve tal cual la escala,
+ * sin oscurecerse por la iluminación del globo, así resalta sobre la imagen satelital.
+ * Se reutilizan por color y opacidad para no crear miles de materiales.
+ */
+const materiales = new Map<string, MeshBasicMaterial>()
+function material(color: string, opacidad: number): MeshBasicMaterial {
+  const clave = `${color}-${opacidad}`
+  let m = materiales.get(clave)
+  if (!m) {
+    m = new MeshBasicMaterial({ color, transparent: opacidad < 1, opacity: opacidad })
+    materiales.set(clave, m)
+  }
+  return m
 }
 
 function escaparHtml(texto: string): string {
@@ -124,6 +146,8 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       .backgroundColor('rgba(0,0,0,0)')
       .pointOfView(VISTA_INICIAL)
       .polygonsTransitionDuration(400)
+      // Polígonos con menos triángulos: el globo gira más fluido en equipos modestos
+      .polygonCapCurvatureResolution(8)
       .polygonLabel((f: object) => {
         const p = f as Pais
         const r = p.properties.iso ? estado.current.porIso.get(p.properties.iso) : undefined
@@ -149,26 +173,64 @@ export default function GloboCO2({ paises, reinicio }: Props) {
         }
         s.setPais(iso)
       })
+      // onZoom se dispara en cada cuadro del giro; React ignora el cambio si el tramo es el mismo
       .onZoom((pov) => setTramo(tramoDe(pov.altitude)))
 
+    // Pantallas de alta densidad: se limita la resolución del lienzo (la diferencia
+    // casi no se nota y el giro va mucho más suave)
+    g.renderer().setPixelRatio(Math.min(window.devicePixelRatio, 1.5))
+
     const controles = g.controls()
+    controles.enableDamping = true // el giro frena con suavidad al soltar
+    controles.dampingFactor = 0.08
+    controles.rotateSpeed = 0.6
+    controles.zoomSpeed = 0.8
     controles.autoRotate = true
-    controles.autoRotateSpeed = 0.35
-    // Al tocarlo deja de girar solo
+    controles.autoRotateSpeed = 0.25
+
+    // Al tocarlo deja de girar solo; 8 s después de soltarlo vuelve a girar
+    // (salvo que haya un país seleccionado, para no perderlo de vista)
+    let espera: ReturnType<typeof setTimeout> | undefined
     const detener = () => {
+      clearTimeout(espera)
       controles.autoRotate = false
     }
+    const reanudar = () => {
+      clearTimeout(espera)
+      espera = setTimeout(() => {
+        const s = estado.current
+        if (s.pais === 'Todos' && s.continente === 'Todos') controles.autoRotate = true
+      }, 8000)
+    }
     controles.addEventListener('start', detener)
+    controles.addEventListener('end', reanudar)
 
     const medir = () => g.width(el.clientWidth).height(el.clientHeight)
     medir()
     const obs = new ResizeObserver(medir)
     obs.observe(el)
 
+    // Si el globo no está en pantalla (scroll o pestaña oculta) se pausa el dibujo
+    let visible = true
+    const actualizarPausa = () => {
+      if (visible && !document.hidden) g.resumeAnimation()
+      else g.pauseAnimation()
+    }
+    const vista = new IntersectionObserver(([e]) => {
+      visible = e.isIntersecting
+      actualizarPausa()
+    })
+    vista.observe(el)
+    document.addEventListener('visibilitychange', actualizarPausa)
+
     globo.current = g
     return () => {
+      clearTimeout(espera)
       obs.disconnect()
+      vista.disconnect()
+      document.removeEventListener('visibilitychange', actualizarPausa)
       controles.removeEventListener('start', detener)
+      controles.removeEventListener('end', reanudar)
       g._destructor()
       el.innerHTML = ''
       globo.current = null
@@ -187,20 +249,23 @@ export default function GloboCO2({ paises, reinicio }: Props) {
   useEffect(() => {
     const g = globo.current
     if (!g || !geo) return
-    const alfa = tramo === 'lejos' ? 0.78 : tramo === 'medio' ? 0.55 : 0.18
-    const contorno = tema === 'oscuro' ? 'rgba(220, 228, 240, 0.35)' : 'rgba(255, 255, 255, 0.6)'
+    // Lejos los colores van casi sólidos para dominar sobre la Tierra; cerca se aclaran
+    // para dejar ver ciudades y calles de OpenStreetMap
+    const alfa = tramo === 'lejos' ? 0.94 : tramo === 'medio' ? 0.8 : 0.25
+    const contorno = tema === 'oscuro' ? 'rgba(230, 236, 245, 0.55)' : 'rgba(255, 255, 255, 0.85)'
     g.polygonsData(geo)
-      .polygonCapColor((f: object) => {
+      .polygonCapMaterial((f: object) => {
         const iso = (f as Pais).properties.iso
         const r = iso ? porIso.get(iso) : undefined
         const fuera = continente !== 'Todos' && r?.continente !== continente
-        if (r?.co2_pc == null) return 'rgba(160, 168, 180, 0.15)'
-        return conAlfa(escala(r.co2_pc), fuera ? 0.12 : iso === pais ? 0.95 : alfa)
+        if (r?.co2_pc == null) return material('#a0a8b4', 0.25)
+        return material(escala(r.co2_pc), fuera ? 0.15 : iso === pais ? 1 : alfa)
       })
-      .polygonSideColor((f: object) => {
+      .polygonSideMaterial((f: object) => {
         const iso = (f as Pais).properties.iso
         const r = iso ? porIso.get(iso) : undefined
-        return r?.co2_pc != null ? conAlfa(escala(r.co2_pc), 0.35) : 'rgba(0,0,0,0)'
+        const fuera = continente !== 'Todos' && r?.continente !== continente
+        return r?.co2_pc != null ? material(escala(r.co2_pc), fuera ? 0.1 : 0.75) : material('#000000', 0)
       })
       .polygonStrokeColor((f: object) => ((f as Pais).properties.iso === pais ? '#ffffff' : contorno))
       .polygonAltitude((f: object) => {
@@ -232,15 +297,27 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       .labelResolution(2)
   }, [geo, porIso, continente, pais, tramo, tema, centros])
 
-  // Al elegir un país (aquí o en el filtro) el globo gira hasta centrarlo
+  // Los filtros mueven el planeta: país → lo centra; continente → gira hacia él;
+  // al quitar ambos vuelve a la vista inicial y a girar solo
+  const filtroPrevio = useRef({ continente, pais })
   useEffect(() => {
     const g = globo.current
-    if (!g || pais === 'Todos') return
-    const c = centros.get(pais)
-    if (!c) return
-    g.controls().autoRotate = false
-    g.pointOfView({ ...c, altitude: Math.min(g.pointOfView().altitude, 1.4) }, 1200)
-  }, [pais, centros])
+    if (!g) return
+    const previo = filtroPrevio.current
+    filtroPrevio.current = { continente, pais }
+    if (pais !== 'Todos') {
+      const c = centros.get(pais)
+      if (!c) return
+      g.controls().autoRotate = false
+      g.pointOfView({ ...c, altitude: Math.min(g.pointOfView().altitude, 1.4) }, 1200)
+    } else if (continente !== 'Todos') {
+      g.controls().autoRotate = false
+      g.pointOfView(VISTA_CONTINENTE[continente], 1200)
+    } else if (previo.continente !== 'Todos' || previo.pais !== 'Todos') {
+      g.pointOfView(VISTA_INICIAL, 1200)
+      g.controls().autoRotate = true
+    }
+  }, [continente, pais, centros])
 
   // "Restablecer vista": vuelve al planeta completo y a girar solo
   useEffect(() => {
