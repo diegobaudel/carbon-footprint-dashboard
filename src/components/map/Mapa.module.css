@@ -192,6 +192,9 @@
   width: 100%;
   height: 100%;
   cursor: grab;
+  /* Capa propia: las etiquetas y tooltips del globo nunca quedan encima de la ficha */
+  position: relative;
+  z-index: 0;
 }
 
 .lienzoGlobo:active {
@@ -341,17 +344,67 @@
 
 /* Nombres de países sobre el globo (etiquetas HTML) */
 :global(.etiqueta-globo) {
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: color-mix(in srgb, var(--color-tarjeta) 75%, transparent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--color-tarjeta);
+  border: 1px solid var(--color-borde);
+  border-bottom: 2px solid var(--color-emision);
   color: var(--color-texto);
   font-family: var(--fuente);
-  font-size: 10px;
-  font-weight: 500;
+  font-size: 11px;
+  line-height: 1.25;
   white-space: nowrap;
   pointer-events: none;
   transform: translate(-50%, -50%);
-  transition: opacity 0.2s;
+}
+
+:global(.etiqueta-globo strong) {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+:global(.etiqueta-globo span) {
+  color: var(--color-texto-sec);
+}
+
+/* Año grande sobre el globo mientras se reproduce la serie */
+.anioGlobo {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.anioGlobo > span:first-child {
+  font-family: var(--fuente-titulos);
+  font-size: 44px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-texto);
+  text-shadow: 0 1px 8px var(--color-tarjeta);
+}
+
+.avanceAnio {
+  width: 120px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-borde);
+  overflow: hidden;
+}
+
+.avanceAnio span {
+  display: block;
+  height: 100%;
+  background: var(--color-emision);
+  transition: width 0.4s ease-out;
 }
 
 /* Aviso flotante: país elegido cuando el mapa no está en pantalla */

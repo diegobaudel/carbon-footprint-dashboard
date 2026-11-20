@@ -1,6 +1,6 @@
 import 'leaflet/dist/leaflet.css'
 import { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react'
-import { GeoJSON, MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet'
+import { CircleMarker, GeoJSON, MapContainer, TileLayer, Tooltip, useMap, useMapEvents } from 'react-leaflet'
 import { geoJSON, type LatLngBoundsExpression, type Map as MapaLeaflet, type PathOptions } from 'leaflet'
 import { feature } from 'topojson-client'
 import type { GeometryCollection, Topology } from 'topojson-specification'
@@ -11,6 +11,7 @@ import { useTema } from '../../hooks/useTema.ts'
 import { colores, cortesMapa, escalaMapa } from '../../styles/palette.ts'
 import type { RegistroPais } from '../../types.ts'
 import { numero, poblacion } from '../../utils/formato.ts'
+import { cargarCentrosPequenos, type CentroPais } from '../../services/datos.ts'
 import { Tarjeta } from '../layout/Tarjeta.tsx'
 import estilos from './Mapa.module.css'
 
@@ -118,7 +119,7 @@ type Vista = 'mapa' | 'globo'
  * Clic en un país para filtrarlo (otro clic lo quita).
  */
 export function MapaCO2({ paises, className }: { paises: RegistroPais[]; className?: string }) {
-  const { anio, continente, pais, setContinente, setPais } = useFiltros()
+  const { anio, continente, pais, setContinente, setPais, reproduciendo } = useFiltros()
   const tema = useTema()
   const [cerca, setCerca] = useState(false)
   const [conWebGL] = useState(soportaWebGL)
@@ -149,6 +150,8 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     </div>
   ) : undefined
   const [geo, setGeo] = useState<FeatureCollection<Geometry, Pais['properties']> | null>(null)
+  // Países sin forma ni en el mapa 1:50m (territorios de ultramar, Tuvalu…): van como punto
+  const [puntos, setPuntos] = useState<CentroPais[]>([])
 
   useEffect(() => {
     let activo = true
@@ -162,6 +165,9 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
       .catch(() => {
         if (activo) setGeo({ type: 'FeatureCollection', features: [] })
       })
+    cargarCentrosPequenos().then((c) => {
+      if (activo) setPuntos(c)
+    })
     return () => {
       activo = false
     }
@@ -171,6 +177,11 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     () => new Map(paises.filter((p) => p.anio === anio).map((p) => [p.iso, p])),
     [paises, anio],
   )
+  const puntosSinForma = useMemo(() => {
+    if (!geo) return []
+    const conForma = new Set(geo.features.map((f) => f.properties.iso))
+    return puntos.filter((p) => !conForma.has(p.iso))
+  }, [geo, puntos])
 
   // El mapa plano también sigue a los filtros: país → lo encuadra; continente → lo
   // encuadra; sin filtros → mundo
@@ -183,6 +194,11 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
       : continente !== 'Todos'
         ? geo.features.filter((f) => f.properties.iso && porIso.get(f.properties.iso)?.continente === continente)
         : []
+    const punto = elegido ? puntosSinForma.find((p) => p.iso === pais) : undefined
+    if (punto) {
+      mapa.flyTo([punto.lat, punto.lng], 6, { duration: 0.8 })
+      return
+    }
     if (objetivo.length === 0) {
       mapa.flyToBounds(MUNDO, { duration: 0.8 })
       return
@@ -191,7 +207,7 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     mapa.flyToBounds(limites, { duration: 0.8, maxZoom: elegido ? 5 : 3, padding: [20, 20] })
     // porIso cambia con el año; solo se vuela al cambiar país o continente
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pais, continente, vista, geo, mapaListo])
+  }, [pais, continente, vista, geo, mapaListo, puntosSinForma])
 
   // Aviso flotante: si hay un país elegido y el mapa no está en pantalla
   const zona = useRef<HTMLDivElement>(null)
@@ -208,6 +224,14 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
     return () => obs.disconnect()
   }, [])
   const elegidoAviso = pais !== 'Todos' ? porIso.get(pais) : undefined
+
+  // ▶ Reproducir: si el mapa no está en pantalla, se trae a la vista para ver cómo
+  // cambian los colores año con año
+  useEffect(() => {
+    if (reproduciendo && !mapaVisible) zona.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    // Solo al empezar la reproducción, no cada vez que cambia la visibilidad
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reproduciendo])
 
   function alClic(iso: string | null) {
     if (!iso) return
@@ -228,7 +252,10 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
   const continenteFoco = registroElegido?.continente ?? (continente !== 'Todos' ? continente : null)
 
   function estilo(f?: Pais): PathOptions {
-    const iso = f?.properties.iso ?? null
+    return estiloIso(f?.properties.iso ?? null)
+  }
+
+  function estiloIso(iso: string | null): PathOptions {
     const registro = iso ? porIso.get(iso) : undefined
     const valor = registro?.co2_pc
     const elegido = iso != null && iso === pais
@@ -305,6 +332,27 @@ export function MapaCO2({ paises, className }: { paises: RegistroPais[]; classNa
                 }}
               />
             )}
+            {/* Países pequeños sin forma en el mapa: un círculo con el mismo color y clic */}
+            {puntosSinForma.map((p) => {
+              const registro = porIso.get(p.iso)
+              return (
+                <CircleMarker
+                  key={`${p.iso}-${anio}-${pais}-${continente}-${cerca}`}
+                  center={[p.lat, p.lng]}
+                  radius={p.iso === pais ? 9 : 6}
+                  pathOptions={{ ...estiloIso(p.iso), weight: p.iso === pais ? 3 : 1 }}
+                  eventHandlers={{ click: () => alClic(p.iso) }}
+                >
+                  <Tooltip sticky className="tooltip-co2">
+                    <strong>{registro?.pais ?? p.iso}</strong>
+                    <br />
+                    {registro?.co2_pc != null
+                      ? `${numero(registro.co2_pc, 1)} t/hab · Población ${poblacion(registro.poblacion)}`
+                      : 'Sin dato registrado'}
+                  </Tooltip>
+                </CircleMarker>
+              )
+            })}
             <SeguirZoom alCambiar={setCerca} />
             <ZoomConRueda />
           </MapContainer>

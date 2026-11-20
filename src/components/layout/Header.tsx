@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useTransition } from 'react'
 import { useFiltros } from '../../context/filtros.ts'
 import { ANIO_MAX, ANIO_MIN, CONTINENTES, type RegistroPais } from '../../types.ts'
 import { IconoPausa, IconoPlay } from './Iconos.tsx'
+import { BuscadorPais } from './BuscadorPais.tsx'
 import estilos from './Header.module.css'
 
 /** Tiempo que se queda cada año al reproducir la serie (ms). */
@@ -16,7 +17,7 @@ interface Props {
  * Se queda fijo arriba al hacer scroll, con una franja que dice qué filtros están activos.
  */
 export function Header({ paises }: Props) {
-  const { anio, continente, pais, setAnio, setContinente, setPais } = useFiltros()
+  const { anio, continente, pais, setAnio, setContinente, setPais, reproduciendo, setReproduciendo } = useFiltros()
 
   // El año se mueve en dos tiempos: el número y el deslizador cambian al instante
   // (anioVisible) y el resto del dashboard se recalcula como transición de React,
@@ -24,7 +25,6 @@ export function Header({ paises }: Props) {
   // Todos los cambios de año pasan por este componente, por eso basta el estado local.
   const [anioVisible, setAnioVisible] = useState(anio)
   const [, iniciarTransicion] = useTransition()
-  const [reproduciendo, setReproduciendo] = useState(false)
 
   // Cualquier cambio manual del año detiene la reproducción
   function cambiarAnio(nuevo: number) {
@@ -57,7 +57,7 @@ export function Header({ paises }: Props) {
       iniciarTransicion(() => setAnio(siguiente))
     }, PASO_REPRODUCCION)
     return () => clearTimeout(t)
-  }, [reproduciendo, anioVisible, setAnio])
+  }, [reproduciendo, anioVisible, setAnio, setReproduciendo])
 
   // Lista de países del desplegable, limitada al continente elegido
   const opcionesPais = useMemo(() => {
@@ -154,17 +154,11 @@ export function Header({ paises }: Props) {
             </select>
           </label>
 
-          <label className={estilos.filtro}>
-            País
-            <select className={estilos.select} value={pais} onChange={(e) => setPais(e.target.value)}>
-              <option value="Todos">Todos</option>
-              {opcionesPais.map(([iso, nombre]) => (
-                <option key={iso} value={iso}>
-                  {nombre}
-                </option>
-              ))}
-            </select>
-          </label>
+          {/* País: buscador con lista desplegable (escribe para filtrar, sin importar acentos) */}
+          <div className={estilos.filtro}>
+            <span aria-hidden="true">País</span>
+            <BuscadorPais opciones={opcionesPais} valor={pais} onCambiar={setPais} claseCampo={estilos.select} />
+          </div>
         </div>
       </header>
 

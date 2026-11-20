@@ -1,0 +1,84 @@
+/* Buscador de país del encabezado: se ve como los demás filtros y abre una lista clara */
+.buscador {
+  position: relative;
+}
+
+.campo {
+  width: 100%;
+  padding-right: 26px;
+  cursor: text;
+  text-overflow: ellipsis;
+}
+
+.campo::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.campo:focus {
+  outline: 2px solid var(--color-emision);
+  outline-offset: 1px;
+}
+
+.flecha {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 11px;
+  color: var(--color-texto-invertido);
+  pointer-events: none;
+}
+
+.lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 80;
+  width: 240px;
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--color-tarjeta);
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.35);
+}
+
+.opcion {
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--color-texto);
+  font-size: var(--texto-sec);
+  cursor: pointer;
+}
+
+.opcion:first-child {
+  color: var(--color-texto-sec);
+  border-bottom: 1px solid var(--color-borde);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 2px;
+}
+
+.activa {
+  background: var(--color-control-hover);
+}
+
+.elegida {
+  font-weight: 600;
+  color: var(--color-emision);
+}
+
+.vacio {
+  padding: 8px 10px;
+  color: var(--color-texto-sec);
+  font-size: var(--texto-nota);
+}
+
+@media (max-width: 720px) {
+  .lista {
+    width: 100%;
+    min-width: 200px;
+  }
+}

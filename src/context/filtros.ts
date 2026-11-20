@@ -11,6 +11,9 @@ export interface ContextoFiltros extends Filtros {
   setAnio: (anio: number) => void
   setContinente: (continente: Filtros['continente']) => void
   setPais: (pais: string) => void
+  /** ▶ del encabezado: el dashboard recorre los años solo (el globo anima su relieve). */
+  reproduciendo: boolean
+  setReproduciendo: (valor: boolean) => void
 }
 
 export const FiltrosContext = createContext<ContextoFiltros | null>(null)

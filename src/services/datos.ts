@@ -30,3 +30,21 @@ export async function cargarPaises(): Promise<RegistroPais[]> {
 export function cargarAgregados(): Promise<RegistroAgregado[]> {
   return cargarJson<RegistroAgregado[]>('agregados.json')
 }
+
+/** Coordenada de un país que no tiene forma en el mapa (se dibuja como punto). */
+export interface CentroPais {
+  iso: string
+  lat: number
+  lng: number
+}
+
+let centrosPequenos: Promise<CentroPais[]> | null = null
+
+/**
+ * Países pequeños sin polígono en el TopoJSON 1:110m (Singapur, Malta, islas…).
+ * Lo genera scripts/centros_pequenos.py. Se pide una sola vez y lo comparten el globo y el mapa.
+ */
+export function cargarCentrosPequenos(): Promise<CentroPais[]> {
+  centrosPequenos ??= cargarJson<CentroPais[]>('centros-pequenos.json').catch(() => [])
+  return centrosPequenos
+}

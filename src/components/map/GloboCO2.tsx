@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useTransition } from 'react'
 import Globe, { type GlobeInstance } from 'globe.gl'
 import { geoCentroid } from 'd3-geo'
 import { feature } from 'topojson-client'
@@ -9,8 +9,9 @@ import { MeshBasicMaterial } from 'three'
 import { useFiltros } from '../../context/filtros.ts'
 import { useTema } from '../../hooks/useTema.ts'
 import { cortesMapa, escalaMapa } from '../../styles/palette.ts'
-import { ANIO_MIN, type Continente, type RegistroPais } from '../../types.ts'
+import { ANIO_MAX, ANIO_MIN, type Continente, type RegistroPais } from '../../types.ts'
 import { cambioPct } from '../../utils/calculos.ts'
+import { cargarCentrosPequenos, type CentroPais } from '../../services/datos.ts'
 import { numero, poblacion, porcentaje } from '../../utils/formato.ts'
 import estilos from './Mapa.module.css'
 
@@ -38,6 +39,9 @@ function urlTesela(tema: 'claro' | 'oscuro') {
 
 /** Vista inicial del planeta (altitud en radios terrestres sobre la superficie). */
 const VISTA_INICIAL = { lat: 18, lng: -20, altitude: 2.3 }
+
+/** Duración del giro hacia un país (ms). */
+const DURACION_VUELO = 800
 
 /** Tramos de acercamiento: el relieve y los colores se ajustan para no tapar el mapa. */
 type Tramo = 'lejos' | 'medio' | 'cerca'
@@ -77,6 +81,12 @@ function material(color: string, opacidad: number): MeshBasicMaterial {
   return m
 }
 
+/** "#c65d21" + 0.5 → "rgba(198, 93, 33, 0.5)" (los puntos aceptan transparencia así). */
+function conAlfa(hex: string, alfa: number): string {
+  const n = parseInt(hex.slice(1), 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alfa})`
+}
+
 function escaparHtml(texto: string): string {
   return texto.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
@@ -94,11 +104,21 @@ interface Props {
  * ficha y aplica el filtro de país en todo el dashboard.
  */
 export default function GloboCO2({ paises, reinicio }: Props) {
-  const { anio, continente, pais, setContinente, setPais } = useFiltros()
+  const { anio, continente, pais: paisFiltro, setContinente, setPais, reproduciendo } = useFiltros()
   const tema = useTema()
+  // Clic en el globo: el país se marca, la ficha aparece y la cámara gira al instante
+  // (estado local). El resto del dashboard se actualiza cuando termina el giro, para que
+  // recalcular las gráficas no frene la animación del planeta.
+  const [, iniciarTransicion] = useTransition()
+  const [clic, setClic] = useState<{ iso: string; antes: string } | null>(null)
+  const pais = clic && clic.antes === paisFiltro ? clic.iso : paisFiltro
+  const pendiente = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(pendiente.current), [])
   const contenedor = useRef<HTMLDivElement>(null)
   const globo = useRef<GlobeInstance | null>(null)
   const [geo, setGeo] = useState<Pais[] | null>(null)
+  // Países pequeños sin forma en el mapa 1:110m: se dibujan como columnas
+  const [puntos, setPuntos] = useState<CentroPais[]>([])
   const [tramo, setTramo] = useState<Tramo>('lejos')
 
   // Polígonos de países (una sola vez)
@@ -112,6 +132,9 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       .catch(() => {
         if (activo) setGeo([])
       })
+    cargarCentrosPequenos().then((c) => {
+      if (activo) setPuntos(c)
+    })
     return () => {
       activo = false
     }
@@ -129,19 +152,39 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       const [lng, lat] = geoCentroid(f)
       m.set(f.properties.iso, { lat, lng })
     }
+    for (const p of puntos) if (!m.has(p.iso)) m.set(p.iso, { lat: p.lat, lng: p.lng })
     return m
-  }, [geo])
+  }, [geo, puntos])
+
+  const elegirDesdeGlobo = (iso: string) => {
+    const r = porIso.get(iso)
+    if (!r) return
+    const nuevo = iso === pais ? 'Todos' : iso
+    setClic({ iso: nuevo, antes: paisFiltro })
+    clearTimeout(pendiente.current)
+    pendiente.current = setTimeout(() => {
+      iniciarTransicion(() => {
+        setClic(null) // a partir de aquí manda el filtro global
+        if (nuevo !== 'Todos' && continente !== 'Todos' && r.continente && r.continente !== continente) {
+          setContinente(r.continente)
+        }
+        setPais(nuevo)
+      })
+    }, DURACION_VUELO)
+  }
 
   // Referencia siempre al día para los callbacks del globo (se crean una sola vez)
-  const estado = useRef({ porIso, continente, pais, setContinente, setPais, centros })
+  const estado = useRef({ porIso, continente, pais, centros, elegirDesdeGlobo })
   useEffect(() => {
-    estado.current = { porIso, continente, pais, setContinente, setPais, centros }
+    estado.current = { porIso, continente, pais, centros, elegirDesdeGlobo }
   })
 
   // Crear el globo una sola vez
   useEffect(() => {
     const el = contenedor.current
     if (!el) return
+    const etiqueta = document.createElement('div')
+    etiqueta.className = 'etiqueta-globo'
     const g = new Globe(el, { animateIn: true })
       .backgroundColor('rgba(0,0,0,0)')
       .pointOfView(VISTA_INICIAL)
@@ -149,31 +192,50 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       .polygonsTransitionDuration(0)
       // Polígonos con menos triángulos: el globo gira más fluido en equipos modestos
       .polygonCapCurvatureResolution(8)
-      .polygonLabel((f: object) => {
-        const p = f as Pais
-        const r = p.properties.iso ? estado.current.porIso.get(p.properties.iso) : undefined
-        const nombre = escaparHtml(r?.pais ?? p.properties.name)
-        const detalle =
-          r?.co2_pc != null
-            ? `${numero(r.co2_pc, 1)} t/hab · ${numero(r.co2, 0)} Mt · ${poblacion(r.poblacion)}`
-            : 'Sin dato registrado'
-        return `<div class="tooltip-globo"><strong>${nombre}</strong><br/>${detalle}</div>`
+      // Nombre del país solo al pasar el cursor: una etiqueta sobre el país, sin React
+      // (no vuelve a dibujar el componente en cada movimiento del mouse)
+      .htmlLat('lat')
+      .htmlLng('lng')
+      .htmlAltitude(0.13)
+      .htmlElement(() => etiqueta)
+      .onPolygonHover((f: object | null) => {
+        const p = f as Pais | null
+        if (!p) {
+          g.htmlElementsData([])
+          return
+        }
+        const s = estado.current
+        const r = p.properties.iso ? s.porIso.get(p.properties.iso) : undefined
+        const centro = (p.properties.iso && s.centros.get(p.properties.iso)) || (() => {
+          const [lng, lat] = geoCentroid(p)
+          return { lat, lng }
+        })()
+        etiqueta.innerHTML =
+          `<strong>${escaparHtml(r?.pais ?? p.properties.name)}</strong>` +
+          `<span>${r?.co2_pc != null ? `${numero(r.co2_pc, 1)} t/hab` : 'Sin dato'}</span>`
+        g.htmlElementsData([centro])
       })
       .onPolygonClick((f: object) => {
         const iso = (f as Pais).properties.iso
-        const s = estado.current
-        if (!iso) return
-        const r = s.porIso.get(iso)
-        if (!r) return
-        if (iso === s.pais) {
-          s.setPais('Todos')
+        if (iso) estado.current.elegirDesdeGlobo(iso)
+      })
+      // Países pequeños (puntos): mismo comportamiento que los polígonos
+      .pointLat('lat')
+      .pointLng('lng')
+      .pointResolution(10)
+      .onPointHover((d: object | null) => {
+        const p = d as CentroPais | null
+        if (!p) {
+          g.htmlElementsData([])
           return
         }
-        if (s.continente !== 'Todos' && r.continente && r.continente !== s.continente) {
-          s.setContinente(r.continente)
-        }
-        s.setPais(iso)
+        const r = estado.current.porIso.get(p.iso)
+        etiqueta.innerHTML =
+          `<strong>${escaparHtml(r?.pais ?? p.iso)}</strong>` +
+          `<span>${r?.co2_pc != null ? `${numero(r.co2_pc, 1)} t/hab` : 'Sin dato'}</span>`
+        g.htmlElementsData([{ lat: p.lat, lng: p.lng }])
       })
+      .onPointClick((d: object) => estado.current.elegirDesdeGlobo((d as CentroPais).iso))
       // onZoom se dispara en cada cuadro del giro; React ignora el cambio si el tramo es el mismo
       .onZoom((pov) => setTramo(tramoDe(pov.altitude)))
 
@@ -246,6 +308,11 @@ export default function GloboCO2({ paises, reinicio }: Props) {
       .atmosphereAltitude(0.18)
   }, [tema])
 
+  // Al cambiar de año se quita la etiqueta del cursor para no mostrar una cifra vieja
+  useEffect(() => {
+    globo.current?.htmlElementsData([])
+  }, [porIso])
+
   // Los polígonos se cargan una sola vez; después solo cambian colores y alturas
   useEffect(() => {
     if (geo) globo.current?.polygonsData(geo)
@@ -256,6 +323,8 @@ export default function GloboCO2({ paises, reinicio }: Props) {
   useEffect(() => {
     const g = globo.current
     if (!g || !geo) return
+    // Al reproducir los años el relieve sube y baja con suavidad entre un año y otro
+    g.polygonsTransitionDuration(reproduciendo ? 700 : 0).pointsTransitionDuration(reproduciendo ? 700 : 0)
     const elegido = pais !== 'Todos' ? porIso.get(pais) : undefined
     const continenteFoco = elegido?.continente ?? (continente !== 'Todos' ? continente : null)
     // Lejos los colores van casi sólidos para dominar sobre la Tierra; cerca se aclaran
@@ -291,41 +360,25 @@ export default function GloboCO2({ paises, reinicio }: Props) {
         // Lejos: el país sube según sus emisiones por persona (máx. ~0.12 radios)
         return 0.006 + Math.min(r?.co2_pc ?? 0, 30) * 0.004 + extra
       })
-  }, [geo, porIso, continente, pais, tramo, tema])
 
-  // Nombres de países a media distancia como etiquetas HTML (mucho más rápidas que
-  // el texto 3D); cerca ya los trae OpenStreetMap
-  const etiquetasCache = useRef(new Map<string, HTMLDivElement>())
-  useEffect(() => {
-    const g = globo.current
-    if (!g) return
-    const datos =
-      tramo === 'medio'
-        ? [...porIso.values()]
-            .filter((r) => centros.has(r.iso))
-            .sort((a, b) => b.poblacion - a.poblacion)
-            .slice(0, 50)
-            .map((r) => ({ ...centros.get(r.iso)!, texto: r.pais, iso: r.iso }))
-        : []
-    g.htmlElementsData(datos)
-      .htmlLat('lat')
-      .htmlLng('lng')
-      .htmlAltitude(0.02)
-      .htmlElement((d: object) => {
-        const { iso, texto } = d as { iso: string; texto: string }
-        let el = etiquetasCache.current.get(iso)
-        if (!el) {
-          el = document.createElement('div')
-          el.className = 'etiqueta-globo'
-          etiquetasCache.current.set(iso, el)
-        }
-        el.textContent = texto
-        return el
+    // Puntos de los países pequeños: mismo color, opacidad y altura que tendría su polígono
+    const conForma = new Set(geo.map((f) => f.properties.iso))
+    g.pointsData(puntos.filter((p) => !conForma.has(p.iso)))
+      .pointColor((d: object) => {
+        const iso = (d as CentroPais).iso
+        const r = porIso.get(iso)
+        if (r?.co2_pc == null) return 'rgba(160, 168, 180, 0.6)'
+        return conAlfa(escala(r.co2_pc), Math.max(opacidad(iso, r), 0.25))
       })
-      .htmlElementVisibilityModifier((el, visible) => {
-        el.style.opacity = visible ? '1' : '0'
+      .pointRadius((d: object) => ((d as CentroPais).iso === pais ? 1.5 : 0.6))
+      .pointAltitude((d: object) => {
+        const iso = (d as CentroPais).iso
+        const r = porIso.get(iso)
+        const extra = iso === pais ? 0.05 : 0
+        if (tramo !== 'lejos') return 0.01 + extra
+        return 0.01 + Math.min(r?.co2_pc ?? 0, 30) * 0.004 + extra
       })
-  }, [porIso, centros, tramo])
+  }, [geo, puntos, porIso, continente, pais, tramo, tema, reproduciendo])
 
   function acercar(factor: number) {
     const g = globo.current
@@ -338,24 +391,47 @@ export default function GloboCO2({ paises, reinicio }: Props) {
   // Los filtros mueven el planeta: país → lo centra; continente → gira hacia él;
   // al quitar ambos vuelve a la vista inicial y a girar solo
   const filtroPrevio = useRef({ continente, pais })
+  const vueloHacia = useRef<string | null>(null)
   useEffect(() => {
     const g = globo.current
     if (!g) return
     const previo = filtroPrevio.current
     filtroPrevio.current = { continente, pais }
     if (pais !== 'Todos') {
+      // Si ya va hacia este país (p. ej. el continente cambió después del clic) no se reinicia
+      if (vueloHacia.current === pais) return
       const c = centros.get(pais)
       if (!c) return
+      vueloHacia.current = pais
       g.controls().autoRotate = false
-      g.pointOfView({ ...c, altitude: Math.min(g.pointOfView().altitude, 1.4) }, 1200)
-    } else if (continente !== 'Todos') {
+      // Los países pequeños (sin forma, solo punto) se ven más de cerca
+      const esPunto = !geo?.some((f) => f.properties.iso === pais)
+      g.pointOfView({ ...c, altitude: Math.min(g.pointOfView().altitude, esPunto ? 0.8 : 1.4) }, DURACION_VUELO)
+      return
+    }
+    vueloHacia.current = null
+    if (continente !== 'Todos') {
       g.controls().autoRotate = false
       g.pointOfView(VISTA_CONTINENTE[continente], 1200)
     } else if (previo.continente !== 'Todos' || previo.pais !== 'Todos') {
       g.pointOfView(VISTA_INICIAL, 1200)
       g.controls().autoRotate = true
     }
-  }, [continente, pais, centros])
+  }, [continente, pais, centros, geo])
+
+  // ▶ Reproducir: sin país elegido el planeta gira un poco más rápido para ver el cambio
+  // de colores en todo el mundo; al terminar vuelve a su giro lento
+  useEffect(() => {
+    const g = globo.current
+    if (!g) return
+    const controles = g.controls()
+    if (reproduciendo && pais === 'Todos' && continente === 'Todos') {
+      controles.autoRotateSpeed = 0.7
+      controles.autoRotate = true
+    } else {
+      controles.autoRotateSpeed = 0.25
+    }
+  }, [reproduciendo, pais, continente])
 
   // "Restablecer vista": vuelve al planeta completo y a girar solo
   useEffect(() => {
@@ -382,6 +458,15 @@ export default function GloboCO2({ paises, reinicio }: Props) {
         </button>
       </div>
       {!geo && <p className={estilos.cargando}>Cargando globo…</p>}
+      {/* Mientras se reproduce la serie: el año grande y su avance sobre el globo */}
+      {reproduciendo && (
+        <div className={estilos.anioGlobo} aria-hidden="true">
+          <span>{anio}</span>
+          <span className={estilos.avanceAnio}>
+            <span style={{ width: `${((anio - ANIO_MIN) / (ANIO_MAX - ANIO_MIN)) * 100}%` }} />
+          </span>
+        </div>
+      )}
       <aside className={estilos.ficha} aria-live="polite">
         {elegido ? (
           <>

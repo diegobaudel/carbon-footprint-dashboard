@@ -6,6 +6,7 @@ export function FiltrosProvider({ children }: { children: ReactNode }) {
   const [anio, setAnio] = useState<number>(ANIO_MAX)
   const [continente, setContinenteEstado] = useState<Filtros['continente']>('Todos')
   const [pais, setPais] = useState<string>('Todos')
+  const [reproduciendo, setReproduciendo] = useState(false)
 
   const valor = useMemo<ContextoFiltros>(
     () => ({
@@ -19,8 +20,10 @@ export function FiltrosProvider({ children }: { children: ReactNode }) {
         setPais('Todos')
       },
       setPais,
+      reproduciendo,
+      setReproduciendo,
     }),
-    [anio, continente, pais],
+    [anio, continente, pais, reproduciendo],
   )
 
   return <FiltrosContext.Provider value={valor}>{children}</FiltrosContext.Provider>
